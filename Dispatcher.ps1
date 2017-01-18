@@ -15,7 +15,7 @@ $tasks = @()
 $tasks += Get-PendingTask -TaskName Unexpire
 $tasks += Get-PendingTask -TaskName Expire
 $tasks += Get-PendingTask -TaskName Delete | where type -ne 'Student' # Remove condition when Procapita import starts working again
-$tasks += Get-PendingTask -TaskName Update | where {$_.givenname -eq ([DBNull]::Value) -and $_.sn -eq ([DBNull]::Value)} # Don't start renaming accounts yet
+$tasks += Get-PendingTask -TaskName Update | where {$_.givenname -eq ([DBNull]::Value) -and $_.sn -eq ([DBNull]::Value)} | select -first 10 # Don't start renaming accounts yet
 $tasks += Get-PendingTask -TaskName Create | where type -eq 'Student' # Only create student accounts for now
 $batchId = New-LogBatch
 foreach ($task in $tasks)
@@ -45,7 +45,7 @@ foreach ($task in $tasks)
             }
             Update
             {
-                 $task | Update-Account | Store-UpdatedAccount
+                 $task | Update-Account # | Store-UpdatedAccount # LmAccount does not yet exist
             }
             Create
             {
@@ -56,7 +56,7 @@ foreach ($task in $tasks)
     }
     catch
     {
-        $params.ErrorObject = $_.TargetObject
+        $params.ErrorObject = $_
         New-LogEntry @params
         $_ | Write-LmEventLog
     }
@@ -67,7 +67,7 @@ try
 }
 catch
 {
-    New-LogEntry -TaskName Report -BatchId $batchId -ErrorObject $_.TargetObject
+    New-LogEntry -TaskName Report -BatchId $batchId -ErrorObject $_
     $_ | Write-LmEventLog
 }
 try
@@ -76,7 +76,7 @@ try
 }
 catch
 {
-    New-LogEntry -TaskName ADImport -BatchId $batchId -ErrorObject $_.TargetObject
+    New-LogEntry -TaskName ADImport -BatchId $batchId -ErrorObject $_
     $_ | Write-LmEventLog
 }
 Close-LogBatch -BatchId $batchId
