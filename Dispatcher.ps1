@@ -4,6 +4,7 @@ $ErrorActionPreference = 'Stop'
 # https://powershell.org/forums/topic/command-exist-and-does-not-exist-at-the-same-time/#post-58156
 Import-Module -Name 'Microsoft.PowerShell.Utility'
 Import-Module -Name 'Microsoft.PowerShell.Management'
+Import-Module -Name 'Microsoft.PowerShell.Security'
 . "$PSScriptRoot\Common.ps1"
 . "$PSScriptRoot\Tasks.ps1"
 . "$PSScriptRoot\Secure.ps1"
@@ -15,7 +16,7 @@ $tasks = @()
 $tasks += Get-PendingTask -TaskName Unexpire
 $tasks += Get-PendingTask -TaskName Expire
 $tasks += Get-PendingTask -TaskName Delete | where type -ne 'Student' # Remove condition when Procapita import starts working again
-$tasks += Get-PendingTask -TaskName Update | where {$_.givenname -eq ([DBNull]::Value) -and $_.sn -eq ([DBNull]::Value)} | select -first 10 # Don't start renaming accounts yet
+$tasks += Get-PendingTask -TaskName Update | where {$_.givenname -eq ([DBNull]::Value) -and $_.sn -eq ([DBNull]::Value)} # Don't start renaming accounts yet
 $tasks += Get-PendingTask -TaskName Create | where type -eq 'Student' # Only create student accounts for now
 $batchId = New-LogBatch
 foreach ($task in $tasks)
