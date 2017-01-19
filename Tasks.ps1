@@ -1,6 +1,5 @@
 ﻿# Make all errors terminating errors
 $ErrorActionPreference = 'Stop'
-
 Import-Module -Name 'ActiveDirectory'
 Add-Type -Path "$PSScriptRoot\Kungsbacka.AccountTasks.dll"
 Add-Type -Path "$PSScriptRoot\Kungsbacka.DS.dll"
@@ -325,6 +324,13 @@ function Update-Account
         [Parameter(ValueFromPipelineByPropertyName=$true)]
         [AllowNull()]
         $SeeAlso,
+        # Do not try to move account
+        [switch]
+        $NoMove,
+        # Do not try to rename account. This disables all updates to givenName, sn (surname),
+        # displayName, cn (common name), userPrincipalName and SMTP address.
+        [switch]
+        $NoRename,
         # Credentials passed on to AD cmdlets.
         [pscredential]
         [System.Management.Automation.Credential()]
@@ -383,22 +389,29 @@ function Update-Account
             Set-ADUser @params
         }
         # Move account
-        if ($Path -isnot [DBNull] -and $Path.Length -gt 0)
+        if (-not $NoMove)
         {
-            $params = @{
-                Identity = $Identity
-                TargetPath = $Path
-            }
-            if ($null -ne $Credential)
+            if ($Path -isnot [DBNull] -and $Path.Length -gt 0)
             {
-                $params.Credential = $Credential
+                $params = @{
+                    Identity = $Identity
+                    TargetPath = $Path
+                }
+                if ($null -ne $Credential)
+                {
+                    $params.Credential = $Credential
+                }
+                Move-ADObject @params
             }
-            Move-ADObject @params
         }
         # Rename account if surname or given name changed
         #   - Update GivenName, Surname and DisplayName
         #   - Create new unique UPN, CN and SMTP address
         #   - Check if user already has the new SMTP address as primary or secondary and act accordingly
+        if ($NoRename)
+        {
+            return
+        }
         $givenNameChanged = $GivenName -isnot [DBNull] -and $GivenName.Length -gt 0
         $surnameChanged = $Surname -isnot [DBNull] -and $Surname.Length -gt 0
         if ($surnameChanged -or $givenNameChanged)
