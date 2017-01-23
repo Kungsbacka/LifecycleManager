@@ -1,6 +1,6 @@
 ﻿# "Popular high-performance JSON framework for .NET"
 # http://www.newtonsoft.com/json
-Add-Type -Path "$PSScriptRoot\Newtonsoft.Json.dll"
+Add-Type -Path "$PSScriptRoot\lib\Newtonsoft.Json.dll"
 . "$PSScriptRoot\Config.ps1"
 
 # I could have used the built in cmdlet for converting to Json, but I

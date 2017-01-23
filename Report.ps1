@@ -1,11 +1,12 @@
 ﻿# Make all errors terminating errors
 $ErrorActionPreference = 'Stop'
 
+. "$PSScriptRoot\Config.ps1"
 . "$PSScriptRoot\Common.ps1"
 
 # "EPPlus is a .net library that reads and writes Excel 2007/2010 files using the Open Office Xml format (xlsx)."
 # http://epplus.codeplex.com/
-Add-Type -Path "$PSScriptRoot\EPPlus.dll"
+Add-Type -Path "$PSScriptRoot\lib\EPPlus.dll"
 
 function Send-NewAccountReport
 {
@@ -46,15 +47,15 @@ function Send-NewAccountReport
     # not allowed to authenticate to our Exchange SMTP receive connector.
     $smtpClient = New-Object -TypeName 'System.Net.Mail.SmtpClient'
     $smtpClient.UseDefaultCredentials = $false
-    $smtpClient.Host = 'smtp.kungsbacka.se'
+    $smtpClient.Host = $Script:Config.SmtpServer
     $table.Rows | Group-Object -Property Mottagare | ForEach-Object -Process {
         $_.Group | Export-NewAccountReport -Path $reportPath
         $msg = New-Object -TypeName 'System.Net.Mail.MailMessage'
         $msg.BodyEncoding = [System.Text.Encoding]::UTF8
         $msg.SubjectEncoding = [System.Text.Encoding]::UTF8
-        $msg.From = 'Kontoadministratören <noreply@kungsbacka.se>'
-        $msg.Subject = 'Nya elevkonton'
-        $msg.Body = "Hej,`r`n`r`nHär kommer en lista med nyskapade elevkonton.`r`n`r`nHälsningar,`r`nKontoadministratören"
+        $msg.From = $Script:Config.SmtpFrom
+        $msg.Subject = $Script:Config.SmtpSubject
+        $msg.Body = $Script:Config.SmtpBody
         $attachment = New-Object 'System.Net.Mail.Attachment' -ArgumentList @($reportPath)
         $msg.Attachments.Add($attachment)
         if ($Recipient)

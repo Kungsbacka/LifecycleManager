@@ -8,4 +8,9 @@ $Config = @{
     ADEventsConnectionString = ''
     # The server that runs the SSIS package for Active Directory import
     SqlAgentServer = ''
+    # Configuration used for sending reports
+    SmtpServer = ''
+    SmtpFrom = ''
+    SmtpSubject = ''
+    SmtpBody = ''
 }

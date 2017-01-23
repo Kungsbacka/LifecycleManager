@@ -1,8 +1,9 @@
 ﻿# Make all errors terminating errors
 $ErrorActionPreference = 'Stop'
 Import-Module -Name 'ActiveDirectory'
-Add-Type -Path "$PSScriptRoot\Kungsbacka.AccountTasks.dll"
-Add-Type -Path "$PSScriptRoot\Kungsbacka.DS.dll"
+Add-Type -Path "$PSScriptRoot\lib\Kungsbacka.CommonExtensions.dll"
+Add-Type -Path "$PSScriptRoot\lib\Kungsbacka.AccountTasks.dll"
+Add-Type -Path "$PSScriptRoot\lib\Kungsbacka.DS.dll"
 $AccountNamesFactory = New-Object -TypeName 'Kungsbacka.DS.AccountNamesFactory'
 
 function Expire-Account
