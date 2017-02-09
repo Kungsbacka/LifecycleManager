@@ -640,7 +640,7 @@ function Delete-Account
         Write-Error -Message 'Account expiration date is less than 90 days ago.' -TargetObject $Identity
     }
     $params = @{
-        Filter = "SeeAlso -eq '$($user.DistinguishedName)'"
+        Filter = "SeeAlso -eq '$($user.DistinguishedName.Replace("'", "''"))'"
     }
     if ($null -ne $Credential)
     {
