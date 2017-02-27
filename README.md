@@ -4,7 +4,7 @@
 Lifecycle Manager creates, deletes and updates user accounts in Active Directory.
 
 ## Dependencies
-* Assemblies: Kungsbacka.DS, Kungsbacka.AccountTasks, Kungsbacka.CommonExtensions, [EPPlus](https://epplus.codeplex.com/) and [Newtonsoft Json](http://www.newtonsoft.com/json)
+* Assemblies: [Kungsbacka.DS](https://github.com/Kungsbacka/Kungsbacka.DS), [Kungsbacka.AccountTasks](https://github.com/Kungsbacka/Kungsbacka.AccountTasks), [Kungsbacka.CommonExtensions](https://github.com/Kungsbacka/Kungsbacka.CommonExtensions), [EPPlus](https://epplus.codeplex.com/) and [Newtonsoft Json](http://www.newtonsoft.com/json)
 * Databases: MetaDirectory and ADEvents
 
 ## Deploying
