@@ -2,6 +2,7 @@
 $ErrorActionPreference = 'Stop'
 Import-Module -Name 'ActiveDirectory'
 Add-Type -Path "$PSScriptRoot\lib\Kungsbacka.CommonExtensions.dll"
+Add-Type -Path "$PSScriptRoot\lib\Kungsbacka.AccountConfiguration.dll"
 Add-Type -Path "$PSScriptRoot\lib\Kungsbacka.AccountTasks.dll"
 Add-Type -Path "$PSScriptRoot\lib\Kungsbacka.DS.dll"
 $AccountNamesFactory = New-Object -TypeName 'Kungsbacka.DS.AccountNamesFactory'
@@ -205,8 +206,8 @@ function Create-Account
                 }
                 elseif ($key -eq 'ResourceBundle')
                 {
-                    $accountType = [Kungsbacka.AccountTasks.AccountTypeExtensions]::FromAlternateName($ResourceBundle)
-                    $accountConfig = [Kungsbacka.AccountTasks.AccountConfiguration]::GetAccountConfiguration($accountType)
+                    $accountType = [Kungsbacka.AccountConfiguration.AccountTypeExtensions]::FromAlternateName($ResourceBundle)
+                    $accountConfig = [Kungsbacka.AccountConfiguration.AccountConfiguration]::GetAccountConfiguration($accountType)
                     # The dispatcher for ResourceManager expects an array
                     $params.OtherAttributes.ExtensionAttribute9 = @(,$accountConfig.Tasks) | ConvertTo-NewtonsoftJson
                 }
