@@ -86,7 +86,7 @@ function Get-PendingTask
         [string]
         $TaskName = 'All'
     )
-    $query = 'SELECT * FROM dbo.ufLmGetPendingLifecycleTask(@task)'
+    $query = 'SELECT * FROM dbo.ufLmGetPendingLifecycleTask(@task, 1)' # 1 = Do not include renames
     $cmd = Get-SqlCommand -Database MetaDirectory -Type Text -Text $query
     if ($TaskName -eq 'All')
     {
