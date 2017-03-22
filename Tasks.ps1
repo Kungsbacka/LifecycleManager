@@ -125,9 +125,8 @@ function Create-Account
         [Parameter(ValueFromPipelineByPropertyName=$true)]
         [string]
         $Skolenhetskod,
-        # Extension attribute that holds all tasks that ResourceManager
-        # should perform once the account is created.
-        [Alias('ExtensionAttribute9')]
+        # Resource bundle that is used to fetch all resource tasks
+        # for ResourceManager.
         [Parameter(ValueFromPipelineByPropertyName=$true)]
         [string]
         $ResourceBundle,
@@ -146,7 +145,7 @@ function Create-Account
         {
             $names = $Script:AccountNamesFactory.GetNames($GivenName, $Surname, 'elev.kungsbacka.se', $EmployeeNumber)
         }
-        $password = [Kungsbacka.DS.PasswordTool]::GenerateReadablePassword()
+        $password = [Kungsbacka.DS.PasswordGenerator]::GenerateReadablePassword()
         $params = @{
             Name = $names.CommonName
             AccountPassword = ($password | ConvertTo-SecureString -AsPlainText -Force)
@@ -209,7 +208,7 @@ function Create-Account
                     $accountType = [Kungsbacka.AccountConfiguration.AccountTypeExtensions]::FromAlternateName($ResourceBundle)
                     $accountConfig = [Kungsbacka.AccountConfiguration.AccountConfiguration]::GetAccountConfiguration($accountType)
                     # The dispatcher for ResourceManager expects an array
-                    $params.OtherAttributes.ExtensionAttribute9 = @(,$accountConfig.Tasks) | ConvertTo-NewtonsoftJson
+                    $params.OtherAttributes.CarLicense = @(,$accountConfig.Tasks) | ConvertTo-NewtonsoftJson
                 }
                 else
                 {
