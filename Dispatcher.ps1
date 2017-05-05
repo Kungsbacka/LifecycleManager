@@ -1,10 +1,5 @@
 ﻿# Make all errors terminating errors
 $ErrorActionPreference = 'Stop'
-# Import-Module statements below are a workaround to make the script run with a gMSA
-# https://powershell.org/forums/topic/command-exist-and-does-not-exist-at-the-same-time/#post-58156
-Import-Module -Name 'Microsoft.PowerShell.Utility'
-Import-Module -Name 'Microsoft.PowerShell.Management'
-Import-Module -Name 'Microsoft.PowerShell.Security'
 . "$PSScriptRoot\Common.ps1"
 . "$PSScriptRoot\Tasks.ps1"
 . "$PSScriptRoot\Secure.ps1"

@@ -257,10 +257,6 @@ function Update-Account
         [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
         [string]
         $Identity,
-        # Used when creating new account names for students
-        [Parameter(ValueFromPipelineByPropertyName=$true)]
-        [AllowNull()]
-        $EmployeeNumber,
         # Updates department attribute
         [Parameter(ValueFromPipelineByPropertyName=$true)]
         [AllowNull()]
@@ -351,7 +347,7 @@ function Update-Account
         {
             $name = $parameter.Key
             $value = $parameter.Value
-            # Renaming and moving is done separately
+            # Renaming and moving is done as separate steps.
             if ($name -in @('Identity', 'Credential', 'GivenName', 'Surname', 'Path', 'NoRename', 'NoMove'))
             {
                 continue
@@ -483,7 +479,7 @@ function Update-Account
             {
                 try
                 {
-                    $names = $Script:AccountNamesFactory.GetNames($newGivenName, $newSurname, $upnDomain, $EmployeeNumber, $true)
+                    $names = $Script:AccountNamesFactory.GetNames($newGivenName, $newSurname, $upnDomain, $targetUser.EmployeeNumber, $true)
                 }
                 catch
                 {
