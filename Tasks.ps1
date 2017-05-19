@@ -32,6 +32,16 @@ function Expire-Account
             $params.Credential = $Credential
         }
         Set-ADAccountExpiration @params
+        $disableMailboxTask = New-Object -TypeName 'Kungsbacka.AccountTasks.DisableMailboxTask'
+        $params = @{
+            Identity = $Identity
+            Replace = @{CarLicense = "[$($disableMailboxTask.ToJson())]"}
+        }
+        if ($null -ne $Credential)
+        {
+            $params.Credential = $Credential
+        }
+        Set-ADUser @params
     }
 }
 
@@ -58,6 +68,16 @@ function Unexpire-Account
             $params.Credential = $Credential
         }
         Clear-ADAccountExpiration @params
+        $connectMailboxTask = New-Object -TypeName 'Kungsbacka.AccountTasks.ConnectMailboxTask'
+        $params = @{
+            Identity = $Identity
+            Replace = @{CarLicense = "[$($connectMailboxTask.ToJson())]"}
+        }
+        if ($null -ne $Credential)
+        {
+            $params.Credential = $Credential
+        }
+        Set-ADUser @params        
     }
 }
 
