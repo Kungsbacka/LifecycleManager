@@ -75,10 +75,17 @@ function Unexpire-Account
         $user = Get-ADUser -Identity $Identity -Properties MSExchPreviousRecipientTypeDetails
         if ($user.MSExchPreviousRecipientTypeDetails -eq 1) # 1 = User mailbox
         {
-            $connectMailboxTask = New-Object -TypeName 'Kungsbacka.AccountTasks.ConnectMailboxTask'
+            if ($user.UserPrincipalName -like "*@$($Script:Config.EmployeeUpnSuffix)")
+            {
+                $reconnectMailboxTask = New-Object -TypeName 'Kungsbacka.AccountTasks.ReconnectOnpremMailboxTask' -ArgumentList @('Employee')
+            }
+            else
+            {
+                $reconnectMailboxTask = New-Object -TypeName 'Kungsbacka.AccountTasks.ReconnectOnpremMailboxTask' -ArgumentList @('Student')
+            }
             $params = @{
                 Identity = $Identity
-                Replace = @{CarLicense = "[$($connectMailboxTask.ToJson())]"}
+                Replace = @{CarLicense = "[$($reconnectMailboxTask.ToJson())]"}
             }
             if ($null -ne $Credential)
             {

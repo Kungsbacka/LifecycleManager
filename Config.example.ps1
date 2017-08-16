@@ -1,4 +1,4 @@
-# Configuration
+﻿# Configuration
 $Config = @{
     # See Secure.ps1 for more details
     EncryptionKey = ''
@@ -13,4 +13,6 @@ $Config = @{
     SmtpFrom = ''
     SmtpSubject = ''
     SmtpBody = ''
+    # Used to determine which accounts belongs to employees
+    EmployeeUpnSuffix = 'example.com'
 }
