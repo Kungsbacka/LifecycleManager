@@ -11,7 +11,7 @@ function Expire-Account
 {
     param
     (
-        # Identity is passed unmodified to Set-ADAccountExpiration
+        # Identity is passed unmodified to AD cmdlets
         [Alias('ObjectGuid')]
         [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
         [string]
@@ -25,15 +25,28 @@ function Expire-Account
     {
         $params = @{
             Identity = $Identity
-            DateTime = [DateTime]::Now.Date
+            Properties = @('AccountExpirationDate' ,'MSExchRecipientTypeDetails')
+        }
+        if ($null -ne $Credential)
+        {
+            $params.Credential = $Credential
+        }
+        $user = Get-ADUser @params
+        # Don't touch the account if an expiration date is set and it's in the future
+        if ($user.AccountExpirationDate -gt (Get-Date))
+        {
+            return
+        }
+        $params = @{
+            Identity = $Identity
+            DateTime = [DateTime]::Today
         }
         if ($null -ne $Credential)
         {
             $params.Credential = $Credential
         }
         Set-ADAccountExpiration @params
-        $user = Get-ADUser -Identity $Identity -Properties MSExchRecipientTypeDetails
-        if ($user.MSExchRecipientTypeDetails -eq 1) # 1 = User mailbox
+        if ($user.MSExchRecipientTypeDetails -eq 1) # 1 = Onprem user mailbox
         {
             $disableMailboxTask = New-Object -TypeName 'Kungsbacka.AccountTasks.DisableMailboxTask'
             $params = @{
@@ -53,7 +66,7 @@ function Unexpire-Account
 {    
     param
     (
-        # Identity is passed unmodified to Clear-ADAccountExpiration
+        # Identity is passed unmodified to AD cmdlets
         [Alias('ObjectGuid')]
         [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
         [string]
@@ -66,14 +79,22 @@ function Unexpire-Account
     {
         $params = @{
             Identity = $Identity
+            Properties = @('MSExchPreviousRecipientTypeDetails')
+        }
+        if ($null -ne $Credential)
+        {
+            $params.Credential = $Credential
+        }
+        $user = Get-ADUser @params
+        $params = @{
+            Identity = $Identity
         }
         if ($null -ne $Credential)
         {
             $params.Credential = $Credential
         }
         Clear-ADAccountExpiration @params
-        $user = Get-ADUser -Identity $Identity -Properties MSExchPreviousRecipientTypeDetails
-        if ($user.MSExchPreviousRecipientTypeDetails -eq 1) # 1 = User mailbox
+        if ($user.MSExchPreviousRecipientTypeDetails -eq 1) # 1 = Onprem user mailbox
         {
             if ($user.UserPrincipalName -like "*@$($Script:Config.EmployeeUpnSuffix)")
             {
