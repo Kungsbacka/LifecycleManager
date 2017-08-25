@@ -3,9 +3,6 @@
 Add-Type -Path "$PSScriptRoot\lib\Newtonsoft.Json.dll"
 . "$PSScriptRoot\Config.ps1"
 
-# I could have used the built in cmdlet for converting to Json, but I
-# use Newtonsoft.Json across all applications to get a known consistent
-# behaviour.
 function ConvertTo-NewtonsoftJson
 {
     param

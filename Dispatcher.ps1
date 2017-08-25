@@ -12,6 +12,7 @@ $tasks += Get-PendingTask -TaskName Unexpire
 $tasks += Get-PendingTask -TaskName Expire
 $tasks += Get-PendingTask -TaskName Delete
 $tasks += Get-PendingTask -TaskName Update
+$tasks += Get-PendingTask -TaskName Move
 $tasks += Get-PendingTask -TaskName Create | where type -eq 'Student' # Only create student accounts for now
 $batchId = New-LogBatch
 foreach ($task in $tasks)
@@ -29,23 +30,27 @@ foreach ($task in $tasks)
         {
             Expire
             {
-                 $task | Expire-Account
+                $task | Expire-Account
             }
             Unexpire
             {
-                 $task | Unexpire-Account
+                $task | Unexpire-Account
             }
             Delete
             {
-                 $task | Delete-Account
+                $task | Delete-Account
             }
             Update
             {
-                 $task | Update-Account -NoRename # | Store-UpdatedAccount # LmAccount does not yet exist, will be created when we start to rename
+                $task | Update-Account -NoRename # | Store-UpdatedAccount # LmAccount does not yet exist, will be created when we start to rename
+            }
+            Move
+            {
+                $task | Move-Account
             }
             Create
             {
-                 $task | Create-Account | Store-NewAccount
+                $task | Create-Account | Store-NewAccount
             }
         }
         New-LogEntry @params

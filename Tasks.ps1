@@ -403,7 +403,7 @@ function Update-Account
         {
             $name = $parameter.Key
             $value = $parameter.Value
-            # Renaming and moving is done as separate steps.
+            # Renaming and moving are done as separate steps.
             if ($name -in @('Identity', 'Credential', 'GivenName', 'Surname', 'Path', 'NoRename', 'NoMove'))
             {
                 continue
