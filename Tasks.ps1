@@ -368,6 +368,11 @@ function Update-Account
         [Parameter(ValueFromPipelineByPropertyName=$true)]
         [AllowNull()]
         $Path,
+        # Updates extensionAttribute10 attribute
+        [Alias('ExtensionAttribute10')]
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
+        [AllowNull()]
+        $Skola,
         # Updates extensionAttribute13 attribute
         [Alias('ExtensionAttribute13')]
         [Parameter(ValueFromPipelineByPropertyName=$true)]
@@ -419,6 +424,10 @@ function Update-Account
             elseif ($name -eq 'MobilePhone')
             {
                 $name = 'EmployeeType'
+            }
+            elseif ($name -eq 'Skola')
+            {
+                $name = 'ExtensionAttribute10'
             }
             elseif ($name -eq 'Skolenhetskod')
             {
