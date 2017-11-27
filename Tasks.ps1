@@ -433,11 +433,11 @@ function Update-Account
             {
                 $name = 'ExtensionAttribute13'
             }
-            if ($value -or $value -eq 0)
+            if (($value -or $value -eq 0) -and $value -isnot [System.DBNull])
             {
                 if (-not $params['Replace'])
                 {
-                    $params['Replace'] = @{}   
+                    $params['Replace'] = @{}
                 }
                 $params['Replace'].Add($name, $value)
             }
