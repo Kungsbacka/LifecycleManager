@@ -413,7 +413,7 @@ function Update-Account
             {
                 continue
             }
-            if ($null -eq $value -or $value -is [DBNull])
+            if ($value -eq $null -or $value -is [DBNull])
             {
                 continue
             }
@@ -433,7 +433,7 @@ function Update-Account
             {
                 $name = 'ExtensionAttribute13'
             }
-            if (($value -or $value -eq 0) -and $value -isnot [System.DBNull])
+            if ($value -or $value -eq 0)
             {
                 if (-not $params['Replace'])
                 {
