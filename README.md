@@ -32,7 +32,7 @@ Register-ScheduledTask `
 ```
 
 ## Permissions
-The following permissions are needed:
+The following permissions are needed for the account running the script:
 * Read/write to the script folder. Reports are created temporarily in this folder before they are sent.
 * Manage users in Active Directory
 * Access databases (MetaDirectory and ADEvents)
