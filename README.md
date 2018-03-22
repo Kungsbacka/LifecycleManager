@@ -39,7 +39,7 @@ The following permissions are needed for the account running the script:
 * Start SQL Agent job for Active Directory import
 
 ## Additional information
-This solution is tailored specifically for Kungsbacka municipality. Schema for the two databases are not included here, but may get published later. Missing are also Kungsbacka.DS, Kungsbacka.AccountTasks and Kungsbacka.CommonExtensions. These will be moved to GitHub in the near future.
+This solution is tailored specifically for Kungsbacka municipality. Schema for the two databases are not included here, but may get published later.
 
 ## TODO
 Improve logging
