@@ -60,7 +60,6 @@ function Send-NewAccountReport
         $msg.Attachments.Add($attachment)
         if ($Recipient)
         {
-            
             $msg.To.Add($Recipient)
         }
         else
@@ -104,7 +103,6 @@ function Export-NewAccountReport
         $package = [OfficeOpenXml.ExcelPackage]($fileInfo)
         $worksheet = $package.Workbook.Worksheets.Add("Nya konton")
         @(
-            'Personnummer'
             'Förnamn'
             'Efternamn'
             'Skola, klass'
@@ -121,7 +119,6 @@ function Export-NewAccountReport
         foreach ($item in $InputObject)
         {
             @(
-                $($item['Personnummer'])
                 $($item['Förnamn'])
                 $($item['Efternamn'])
                 $($item['Skola & klass'])

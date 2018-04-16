@@ -1,4 +1,4 @@
-# Lifecycle Manager
+﻿# Lifecycle Manager
 
 ## Description
 Lifecycle Manager creates, deletes and updates user accounts in Active Directory.
