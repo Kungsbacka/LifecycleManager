@@ -84,7 +84,28 @@ function Get-PendingTask
         [Parameter(Position = 0)]
         [ValidateSet('Expire','Unexpire','Delete','Create','Update','Move','All')]
         [string]
-        $TaskName = 'All'
+        $TaskName = 'All',
+        [Parameter(Position = 1)]
+        [ValidateSet('Current','Stored')]
+        [string]
+        $TaskSource = 'Current'
+    )
+
+    if ($TaskSource -eq 'Current')
+    {
+        InternalGetCurrentTask -TaskName $TaskName
+    }
+    else
+    {
+        InternalGetStoredTask -TaskName $TaskName
+    }
+}
+
+function InternalGetCurrentTask
+{
+    param
+    (
+        [string]$TaskName
     )
     $query = 'SELECT * FROM dbo.ufLmGetPendingLifecycleTask(@task, 1)' # 1 = Do not include renames
     $cmd = Get-SqlCommand -Database MetaDirectory -Type Text -Text $query
@@ -104,3 +125,28 @@ function Get-PendingTask
     }
     Write-Output $table.Rows
 }
+
+function InternalGetStoredTask
+{
+    param
+    (
+        [string]$TaskName
+    )
+    $query = 
+        'SELECT [task],[objectGUID],[path],[employeeNumber],[employeeType],[extensionAttribute10],[extensionAttribute13],[departmentNumber],[department],[givenName],[initials],[manager],[physicalDeliveryOfficeName],[seeAlso],[sn],[telephoneNumber],[title],[resourceBundle],[type] ' +
+        'FROM dbo.LmPendingTaskView'
+    if ($TaskName -ne 'All')
+    {
+        $query += " WHERE [task] = '$TaskName'"
+    }
+    $query += ' ORDER BY [sortOrder] ASC'
+    $cmd = Get-SqlCommand -Database MetaDirectory -Type Text -Text $query
+    $reader = $cmd.ExecuteReader()
+    $table = New-Object 'System.Data.DataTable'
+    if ($reader.HasRows)
+    {
+        $table.Load($reader)
+    }
+    Write-Output $table.Rows
+}
+

@@ -413,7 +413,7 @@ function Update-Account
             {
                 continue
             }
-            if ($value -eq $null -or $value -is [DBNull])
+            if ($null -eq $value -or $value -is [DBNull])
             {
                 continue
             }
