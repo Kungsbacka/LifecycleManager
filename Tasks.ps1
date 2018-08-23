@@ -176,7 +176,12 @@ function Create-Account
         [Parameter(ValueFromPipelineByPropertyName=$true)]
         [string]
         $TelephoneNumber,
-        # Extension attribute used for students only.
+        # Extension attribute used for skola.
+        [Alias('ExtensionAttribute10')]
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
+        [AllowNull()]
+        $Skola,
+        # Extension attribute used for skolenhetskod.
         [Alias('ExtensionAttribute13')]
         [Parameter(ValueFromPipelineByPropertyName=$true)]
         [string]
@@ -234,6 +239,7 @@ function Create-Account
             'DepartmentNumber'
             'MobilePhone'
             'TelephoneNumber'
+            'Skola'
             'Skolenhetskod'
             'ResourceBundle'
         )
@@ -243,7 +249,11 @@ function Create-Account
             if ($PSBoundParameters.ContainsKey($key) -and $PSBoundParameters[$key] -isnot [DBNull] -and $PSBoundParameters[$key].Length -gt 0)
             {
                 $value = [string]$PSBoundParameters[$key]
-                if ($key -eq 'Skolenhetskod')
+                if ($key -eq 'Skola')
+                {
+                    $params.OtherAttributes.ExtensionAttribute10 = $value
+                }
+                elseif ($key -eq 'Skolenhetskod')
                 {
                     $params.OtherAttributes.ExtensionAttribute13 = $value
                 }
