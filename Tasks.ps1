@@ -271,10 +271,12 @@ function Create-Account
                 }
                 elseif ($key -eq 'ResourceBundle')
                 {
-                    $accountType = [Kungsbacka.AccountConfiguration.AccountTypeExtensions]::FromAlternateName($ResourceBundle)
-                    $accountConfig = [Kungsbacka.AccountConfiguration.AccountConfiguration]::GetAccountConfiguration($accountType)
-                    # The dispatcher for ResourceManager expects an array
-                    $params.OtherAttributes.CarLicense = @(,$accountConfig.Tasks) | ConvertTo-NewtonsoftJson
+                    if ($Type -eq 'Student')
+                    {
+                        $accountConfig = [Kungsbacka.AccountConfiguration.AccountConfiguration]::GetAccountConfiguration('Elev')
+                        # The dispatcher for ResourceManager expects an array
+                        $params.OtherAttributes.CarLicense = @(,$accountConfig.Tasks) | ConvertTo-NewtonsoftJson
+                    }
                 }
                 else
                 {
