@@ -25,7 +25,7 @@ function Expire-Account
     {
         $params = @{
             Identity = $Identity
-            Properties = @('AccountExpirationDate' ,'MSExchRecipientTypeDetails')
+            Properties = @('AccountExpirationDate')
         }
         if ($null -ne $Credential)
         {
@@ -46,19 +46,6 @@ function Expire-Account
             $params.Credential = $Credential
         }
         Set-ADAccountExpiration @params
-        if ($user.MSExchRecipientTypeDetails -eq 1) # 1 = Onprem user mailbox
-        {
-            $disableMailboxTask = New-Object -TypeName 'Kungsbacka.AccountTasks.DisableMailboxTask'
-            $params = @{
-                Identity = $Identity
-                Replace = @{CarLicense = "[$($disableMailboxTask.ToJson())]"}
-            }
-            if ($null -ne $Credential)
-            {
-                $params.Credential = $Credential
-            }
-            Set-ADUser @params
-        }
     }
 }
 
@@ -79,7 +66,7 @@ function Unexpire-Account
     {
         $params = @{
             Identity = $Identity
-            Properties = @('MSExchPreviousRecipientTypeDetails')
+            Properties = @('ExtensionAttribute11')
         }
         if ($null -ne $Credential)
         {
@@ -94,26 +81,6 @@ function Unexpire-Account
             $params.Credential = $Credential
         }
         Clear-ADAccountExpiration @params
-        if ($user.MSExchPreviousRecipientTypeDetails -eq 1) # 1 = Onprem user mailbox
-        {
-            if ($user.UserPrincipalName -like "*@$($Script:Config.EmployeeUpnSuffix)")
-            {
-                $reconnectMailboxTask = New-Object -TypeName 'Kungsbacka.AccountTasks.ReconnectOnpremMailboxTask' -ArgumentList @('Employee')
-            }
-            else
-            {
-                $reconnectMailboxTask = New-Object -TypeName 'Kungsbacka.AccountTasks.ReconnectOnpremMailboxTask' -ArgumentList @('Student')
-            }
-            $params = @{
-                Identity = $Identity
-                Replace = @{CarLicense = "[$($reconnectMailboxTask.ToJson())]"}
-            }
-            if ($null -ne $Credential)
-            {
-                $params.Credential = $Credential
-            }
-            Set-ADUser @params     
-        }   
     }
 }
 
@@ -742,4 +709,15 @@ function Delete-Account
         $params.Credential = $Credential
     }
     Remove-ADObject @params
+}
+
+function Remove-MsolLicense
+{
+
+
+}
+
+function Restore-MsolLicense
+{
+    
 }
