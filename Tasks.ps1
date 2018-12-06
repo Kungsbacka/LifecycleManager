@@ -66,15 +66,6 @@ function Unexpire-Account
     {
         $params = @{
             Identity = $Identity
-            Properties = @('ExtensionAttribute11')
-        }
-        if ($null -ne $Credential)
-        {
-            $params.Credential = $Credential
-        }
-        $user = Get-ADUser @params
-        $params = @{
-            Identity = $Identity
         }
         if ($null -ne $Credential)
         {
@@ -144,15 +135,10 @@ function Create-Account
         [string]
         $TelephoneNumber,
         # Extension attribute used for skola.
-        [Alias('ExtensionAttribute10')]
+        [Alias('MsDsCloudExtensionAttribute10')]
         [Parameter(ValueFromPipelineByPropertyName=$true)]
         [AllowNull()]
         $Skola,
-        # Extension attribute used for skolenhetskod.
-        [Alias('ExtensionAttribute13')]
-        [Parameter(ValueFromPipelineByPropertyName=$true)]
-        [string]
-        $Skolenhetskod,
         # Resource bundle that is used to fetch all resource tasks
         # for ResourceManager.
         [Parameter(ValueFromPipelineByPropertyName=$true)]
@@ -188,15 +174,16 @@ function Create-Account
             SamAccountName = $names.SamAccountName
             Surname = $names.LastName
             UserPrincipalName = $names.UserPrincipalName
+            OtherAttributes = @{}
             PassThru = $true
         }
         if ($Type -eq 'Employee')
         {
-            $params.OtherAttributes = @{GidNumber = 1} # Sourced from Personec
+            $params.OtherAttributes.Add('gidNumber', 1) # Sourced from Personec
         }
         else
         {
-            $params.OtherAttributes = @{GidNumber = 2} # Sourced from Procapita
+            $params.OtherAttributes.Add('gidNumber', 2) # Sourced from Procapita
         }
         $optionalParameters = @(
             'Office'
@@ -207,7 +194,6 @@ function Create-Account
             'MobilePhone'
             'TelephoneNumber'
             'Skola'
-            'Skolenhetskod'
             'ResourceBundle'
         )
         foreach ($key in $optionalParameters)
@@ -218,31 +204,27 @@ function Create-Account
                 $value = [string]$PSBoundParameters[$key]
                 if ($key -eq 'Skola')
                 {
-                    $params.OtherAttributes.ExtensionAttribute10 = $value
-                }
-                elseif ($key -eq 'Skolenhetskod')
-                {
-                    $params.OtherAttributes.ExtensionAttribute13 = $value
+                    $params.OtherAttributes.Add('msDS-cloudExtensionAttribute10', $value)
                 }
                 elseif ($key -eq 'MobilePhone')
                 {
-                    $params.OtherAttributes.EmployeeType = $value
+                    $params.OtherAttributes.Add('employeeType', $value)
                 }
                 elseif ($key -eq 'TelephoneNumber')
                 {
-                    $params.OtherAttributes.TelephoneNumber = $value
+                    $params.OtherAttributes.Add('telephoneNumber', $value)
                 }
                 elseif ($key -eq 'DepartmentNumber')
                 {
-                    $params.OtherAttributes.DepartmentNumber = $value
+                    $params.OtherAttributes.Add('departmentNumber', $value)
                 }
                 elseif ($key -eq 'ResourceBundle')
                 {
                     if ($Type -eq 'Student')
                     {
                         $accountConfig = [Kungsbacka.AccountConfiguration.AccountConfiguration]::GetAccountConfiguration('Elev')
-                        # The dispatcher for ResourceManager expects an array
-                        $params.OtherAttributes.CarLicense = @(,$accountConfig.Tasks) | ConvertTo-NewtonsoftJson
+                        $json = ConvertTo-NewtonsoftJson -InputObject $accountConfig.Tasks
+                        $params.OtherAttributes.Add('carLicense', $json)
                     }
                 }
                 else
@@ -347,16 +329,11 @@ function Update-Account
         [Parameter(ValueFromPipelineByPropertyName=$true)]
         [AllowNull()]
         $Path,
-        # Updates extensionAttribute10 attribute
-        [Alias('ExtensionAttribute10')]
+        # Updates msDS-cloudExtensionAttribute10 attribute
+        [Alias('MsDsCloudExtensionAttribute10')]
         [Parameter(ValueFromPipelineByPropertyName=$true)]
         [AllowNull()]
         $Skola,
-        # Updates extensionAttribute13 attribute
-        [Alias('ExtensionAttribute13')]
-        [Parameter(ValueFromPipelineByPropertyName=$true)]
-        [AllowNull()]
-        $Skolenhetskod,
         # Updates seeAlso attribute
         [Parameter(ValueFromPipelineByPropertyName=$true)]
         [AllowNull()]
@@ -398,19 +375,15 @@ function Update-Account
             }
             if ($name -eq 'Office')
             {
-                $name = 'PhysicalDeliveryOfficeName'
+                $name = 'physicalDeliveryOfficeName'
             }
             elseif ($name -eq 'MobilePhone')
             {
-                $name = 'EmployeeType'
+                $name = 'employeeType'
             }
             elseif ($name -eq 'Skola')
             {
-                $name = 'ExtensionAttribute10'
-            }
-            elseif ($name -eq 'Skolenhetskod')
-            {
-                $name = 'ExtensionAttribute13'
+                $name = 'msDS-cloudExtensionAttribute10'
             }
             if ($value -or $value -eq 0)
             {
@@ -713,11 +686,58 @@ function Delete-Account
 
 function Remove-MsolLicense
 {
-
-
+    param
+    (
+        # Identity is passed unmodified to AD cmdlets
+        [Alias('ObjectGuid')]
+        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $Identity,
+        # Credentials passed on to AD cmdlets.
+        [pscredential]
+        [System.Management.Automation.Credential()]
+        $Credential
+    )
+    process
+    {
+        $task = New-Object 'Kungsbacka.AccountTasks.MsolRemoveAllLicenseGroupTask'
+        $params = @{
+            Identity = $Identity
+            Replace = @{'carLicense'="[$($task.ToJson())]"}
+        }
+        if ($null -ne $Credential)
+        {
+            $params.Credential = $Credential
+        }
+        Set-ADUser @params
+    }
 }
 
 function Restore-MsolLicense
 {
-    
+    param
+    (
+        # Identity is passed unmodified to AD cmdlets
+        [Alias('ObjectGuid')]
+        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $Identity,
+        # Credentials passed on to AD cmdlets.
+        [pscredential]
+        [System.Management.Automation.Credential()]
+        $Credential
+    )
+    process
+    {
+        $task = New-Object 'Kungsbacka.AccountTasks.MsolRestoreLicenseGroupTask'
+        $params = @{
+            Identity = $Identity
+            Replace = @{'carLicense'="[$($task.ToJson())]"}
+        }
+        if ($null -ne $Credential)
+        {
+            $params.Credential = $Credential
+        }
+        Set-ADUser @params
+    }
 }

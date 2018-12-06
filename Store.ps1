@@ -82,7 +82,7 @@ function Get-PendingTask
     param
     (
         [Parameter(Position = 0)]
-        [ValidateSet('Expire','Unexpire','Delete','Create','Update','Move','All')]
+        [ValidateSet('Expire','Unexpire','Delete','Create','Update','Move','RemoveLicense','RestoreLicense','All')]
         [string]
         $TaskName = 'All',
         [Parameter(Position = 1)]
@@ -133,7 +133,7 @@ function InternalGetStoredTask
         [string]$TaskName
     )
     $query = 
-        'SELECT [task],[objectGUID],[path],[employeeNumber],[employeeType],[extensionAttribute10],[extensionAttribute13],[departmentNumber],[department],[givenName],[initials],[manager],[physicalDeliveryOfficeName],[seeAlso],[sn],[telephoneNumber],[title],[resourceBundle],[type] ' +
+        'SELECT [task],[objectGUID],[path],[employeeNumber],[employeeType],[msDScloudExtensionAttribute10],[departmentNumber],[department],[givenName],[initials],[manager],[physicalDeliveryOfficeName],[seeAlso],[sn],[telephoneNumber],[title],[resourceBundle],[type] ' +
         'FROM dbo.LmPendingTaskView'
     if ($TaskName -ne 'All')
     {

@@ -10,6 +10,8 @@ $ErrorActionPreference = 'Stop'
 $tasks = @()
 $tasks += Get-PendingTask -TaskName Unexpire
 $tasks += Get-PendingTask -TaskName Expire
+$tasks += Get-PendingTask -TaskName RemoveLicense
+$tasks += Get-PendingTask -TaskName RestoreLicense
 $tasks += Get-PendingTask -TaskName Delete
 $tasks += Get-PendingTask -TaskName Update
 $tasks += Get-PendingTask -TaskName Move
@@ -35,6 +37,14 @@ foreach ($task in $tasks)
             Unexpire
             {
                 $task | Unexpire-Account
+            }
+            RemoveLicense
+            {
+                $task | Remove-MsolLicense
+            }
+            RestoreLicense
+            {
+                $task | Restore-MsolLicense
             }
             Delete
             {

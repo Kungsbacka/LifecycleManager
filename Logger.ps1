@@ -36,7 +36,7 @@ function New-LogEntry
     param
     (
         [Parameter(Mandatory)]
-        [ValidateSet('Expire', 'Unexpire', 'Delete', 'Update', 'Move', 'Create', 'Report', 'ADImport')]
+        [ValidateSet('Expire', 'Unexpire', 'RemoveLicense', 'RestoreLicense', 'Delete', 'Update', 'Move', 'Create', 'Report', 'ADImport')]
         [string]
         $TaskName,
         [Parameter(Mandatory)]
