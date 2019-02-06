@@ -50,7 +50,7 @@ function Expire-Account
 }
 
 function Unexpire-Account
-{    
+{
     param
     (
         # Identity is passed unmodified to AD cmdlets
@@ -184,6 +184,7 @@ function Create-Account
         else
         {
             $params.OtherAttributes.Add('gidNumber', 2) # Sourced from Procapita
+            $params.CannotChangePassword = $true
         }
         $optionalParameters = @(
             'Office'
