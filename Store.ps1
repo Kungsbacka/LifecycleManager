@@ -22,7 +22,7 @@ function Store-NewAccount
         $AccountPassword,
         [Parameter(Mandatory, ValueFromPipelineByPropertyName)]
         [string]
-        $ResourceBundle,
+        $AccountType,
         [Parameter(Mandatory, ValueFromPipelineByPropertyName)]
         [string]
         $GivenName,
@@ -39,41 +39,19 @@ function Store-NewAccount
         [string]
         $Title
     )
-    $query = 'INSERT INTO dbo.LmNewAccount (created, objectGUID, employeeNumber, userPrincipalName, sAMAccountName, accountPassword, resourceBundle, givenName, sn, department, physicalDeliveryOfficeName, title) VALUES (GETDATE(), @guid, @empno, @upn, @sam, @pw, @bundle, @gn, @sn, @dept, @office, @title)'
+    $query = 'INSERT INTO dbo.LmNewAccount (created, objectGUID, employeeNumber, userPrincipalName, sAMAccountName, accountPassword, accountType, givenName, sn, department, physicalDeliveryOfficeName, title) VALUES (GETDATE(), @guid, @empno, @upn, @sam, @pw, @type, @gn, @sn, @dept, @office, @title)'
     $cmd = Get-SqlCommand -Database MetaDirectory -Type Text -Text $query
     [void]$cmd.Parameters.AddWithValue('@guid', $ObjectGuid)
     [void]$cmd.Parameters.AddWithValue('@empno', $EmployeeNumber)
     [void]$cmd.Parameters.AddWithValue('@upn', $UserPrincipalName)
     [void]$cmd.Parameters.AddWithValue('@sam', $SamAccountName)
     [void]$cmd.Parameters.AddWithValue('@pw',  $AccountPassword)
-    [void]$cmd.Parameters.AddWithValue('@bundle',  $ResourceBundle)
+    [void]$cmd.Parameters.AddWithValue('@type',  $AccountType)
     [void]$cmd.Parameters.AddWithValue('@gn',  $GivenName)
     [void]$cmd.Parameters.AddWithValue('@sn',  $Surname)
     [void]$cmd.Parameters.AddWithValue('@dept',  $Department)
     [void]$cmd.Parameters.AddWithValue('@office',  $Office)
     [void]$cmd.Parameters.AddWithValue('@title',  $Title)
-    [void]$cmd.ExecuteNonQuery()
-}
-
-function Store-UpdatedAccount
-{
-    param
-    (
-        [Parameter(Mandatory, ValueFromPipelineByPropertyName)]
-        [string]
-        $ObjectGuid,
-        [Parameter(Mandatory, ValueFromPipelineByPropertyName)]
-        [string]
-        $EmployeeNumber,
-        [Parameter(Mandatory, ValueFromPipelineByPropertyName)]
-        [string]
-        $UserPrincipalName
-    )
-    $query = 'INSERT INTO dbo.LmAccount (inserted, objectGUID, employeeNumber, userPrincipalName) VALUES (GETDATE(), @guid, @empno, @upn)'
-    $cmd = Get-SqlCommand -Database MetaDirectory -Type Text -Text $query
-    [void]$cmd.Parameters.AddWithValue('@guid', $ObjectGuid)
-    [void]$cmd.Parameters.AddWithValue('@empno', $EmployeeNumber)
-    [void]$cmd.Parameters.AddWithValue('@upn', $UserPrincipalName)
     [void]$cmd.ExecuteNonQuery()
 }
 
@@ -132,8 +110,8 @@ function InternalGetStoredTask
     (
         [string]$TaskName
     )
-    $query = 
-        'SELECT [task],[objectGUID],[path],[employeeNumber],[employeeType],[msDScloudExtensionAttribute10],[departmentNumber],[department],[givenName],[initials],[manager],[physicalDeliveryOfficeName],[seeAlso],[sn],[telephoneNumber],[title],[resourceBundle],[type] ' +
+    $query =
+        'SELECT [task],[objectGUID],[path],[employeeNumber],[employeeType],[msDScloudExtensionAttribute10],[departmentNumber],[department],[givenName],[initials],[manager],[physicalDeliveryOfficeName],[seeAlso],[sn],[telephoneNumber],[title],[accountType] ' +
         'FROM dbo.LmPendingTaskView'
     if ($TaskName -ne 'All')
     {

@@ -5,7 +5,7 @@ Add-Type -Path "$PSScriptRoot\lib\Kungsbacka.CommonExtensions.dll"
 Add-Type -Path "$PSScriptRoot\lib\Kungsbacka.AccountConfiguration.dll"
 Add-Type -Path "$PSScriptRoot\lib\Kungsbacka.AccountTasks.dll"
 Add-Type -Path "$PSScriptRoot\lib\Kungsbacka.DS.dll"
-$AccountNamesFactory = New-Object -TypeName 'Kungsbacka.DS.AccountNamesFactory'
+$Script:AccountNamesFactory = New-Object -TypeName 'Kungsbacka.DS.AccountNamesFactory'
 
 function Expire-Account
 {
@@ -79,14 +79,6 @@ function Create-Account
 {
     param
     (
-        # Location where the account is created
-        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [string]
-        $Path,
-        # EmployeeNumber
-        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [string]
-        $EmployeeNumber,
         # Fristname
         [Alias('Firstname')]
         [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
@@ -99,9 +91,30 @@ function Create-Account
         $Surname,
         # Account type
         [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [ValidateSet('Employee', 'Student')]
+        [ArgumentCompleter(
+            {
+                param ($Command, $Parameter, $WordToComplete, $CommandAst, $FakeBoundParams)
+                [Enum]::GetNames([Kungsbacka.AccountConfiguration.AccountType])
+            }
+        )]
+        [ValidateScript(
+            {
+                $_ -in [Enum]::GetNames([Kungsbacka.AccountConfiguration.AccountType])
+            }
+        )]
         [string]
-        $Type,
+        $AccountType,
+        # Personnummer. Optional, but if AccountConfiguration for
+        # the account type has RequireEmployeeNumber = true, the
+        # function will throw if no employee number is supplied.
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $EmployeeNumber,
+        # Location where the account is created in AD
+        # Overrides location from AccountConfiguration
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $Path,
         # Office
         [Alias('PhysicalDeliveryOfficeName')]
         [Parameter(ValueFromPipelineByPropertyName=$true)]
@@ -138,12 +151,13 @@ function Create-Account
         [Alias('MsDsCloudExtensionAttribute10')]
         [Parameter(ValueFromPipelineByPropertyName=$true)]
         [AllowNull()]
-        $Skola,
-        # Resource bundle that is used to fetch all resource tasks
-        # for ResourceManager.
-        [Parameter(ValueFromPipelineByPropertyName=$true)]
         [string]
-        $ResourceBundle,
+        $Skola,
+        # Account source
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
+        [ValidateSet("Elevregister", "Personalsystem", "None")]
+        [string]
+        $AccountSource,
         # Credentials passed on to AD cmdlets.
         [pscredential]
         [System.Management.Automation.Credential()]
@@ -151,40 +165,63 @@ function Create-Account
     )
     process
     {
-        if ($Type -eq 'Employee')
+        $accountConfig = [Kungsbacka.AccountConfiguration.AccountConfiguration]::GetConfiguration($AccountType)
+        $empNo = $null
+        if ($accountConfig.AddBirthYearAsSamPrefix)
         {
-            $names = $Script:AccountNamesFactory.GetNames($GivenName, $Surname, 'kungsbacka.se')
+            $empNo = $EmployeeNumber
         }
-        else
-        {
-            $names = $Script:AccountNamesFactory.GetNames($GivenName, $Surname, 'elev.kungsbacka.se', $EmployeeNumber)
-        }
+        $names =  $Script:AccountNamesFactory.GetNames(
+            $GivenName,
+            $Surname,
+            $accountConfig.UpnSuffix,
+            $empNo,
+            $false,
+            $accountConfig.SamPrefix,
+            $accountConfig.LinkUpnAndSam
+        )
         $password = [Kungsbacka.DS.PasswordGenerator]::GenerateReadablePassword()
         $params = @{
             Name = $names.CommonName
-            AccountPassword = ($password | ConvertTo-SecureString -AsPlainText -Force)
-            CannotChangePassword = $false
-            ChangePasswordAtLogon = $false
             DisplayName = $names.DisplayName
-            EmployeeNumber = $EmployeeNumber
-            Enabled = $true
             GivenName = $names.FirstName
-            PasswordNeverExpires = $true
-            Path = $Path
-            SamAccountName = $names.SamAccountName
             Surname = $names.LastName
+            SamAccountName = $names.SamAccountName
             UserPrincipalName = $names.UserPrincipalName
+            AccountPassword = ($password | ConvertTo-SecureString -AsPlainText -Force)
+            CannotChangePassword = $accountConfig.CannotChangePassword
+            ChangePasswordAtLogon = $accountConfig.ChangePasswordAtLogon
+            PasswordNeverExpires = $accountConfig.PasswordNeverExpires
+            Enabled = $false
+            Path = $accountConfig.DefaultLocation
             OtherAttributes = @{}
             PassThru = $true
         }
-        if ($Type -eq 'Employee')
+        if ($Path) # Override default location
         {
-            $params.OtherAttributes.Add('gidNumber', 1) # Sourced from Personec
+            $params.Path = $Path
         }
-        else
+        if ($EmployeeNumber)
         {
-            $params.OtherAttributes.Add('gidNumber', 2) # Sourced from Procapita
-            $params.CannotChangePassword = $true
+            $params.EmployeeNumber = $EmployeeNumber
+        }
+        elseif ($accountConfig.RequireEmployeeNumber)
+        {
+            throw 'This account type requires an employee number, but a value for parameter EmployeeNumber was not supplied.'
+        }
+        if ($AccountSource -eq 'Elevregister')
+        {
+            $params.OtherAttributes.Add('gidNumber', 2)
+        }
+        elseif ($AccountSource -eq 'Personalsystem')
+        {
+            $params.OtherAttributes.Add('gidNumber', 2)
+        }
+        $tasks = $accountConfig.AccountTasks
+        if ($tasks.Count -gt 0)
+        {
+            $json =  ConvertTo-NewtonsoftJson -InputObject $tasks
+            $params.OtherAttributes.Add('carLicense', $json)
         }
         $optionalParameters = @(
             'Office'
@@ -195,11 +232,9 @@ function Create-Account
             'MobilePhone'
             'TelephoneNumber'
             'Skola'
-            'ResourceBundle'
         )
         foreach ($key in $optionalParameters)
         {
-            # Everything has a length in PowerShell...
             if ($PSBoundParameters.ContainsKey($key) -and $PSBoundParameters[$key] -isnot [DBNull] -and $PSBoundParameters[$key].Length -gt 0)
             {
                 $value = [string]$PSBoundParameters[$key]
@@ -219,15 +254,6 @@ function Create-Account
                 {
                     $params.OtherAttributes.Add('departmentNumber', $value)
                 }
-                elseif ($key -eq 'ResourceBundle')
-                {
-                    if ($Type -eq 'Student')
-                    {
-                        $accountConfig = [Kungsbacka.AccountConfiguration.AccountConfiguration]::GetAccountConfiguration('Elev')
-                        $json = ConvertTo-NewtonsoftJson -InputObject $accountConfig.Tasks
-                        $params.OtherAttributes.Add('carLicense', $json)
-                    }
-                }
                 else
                 {
                     $params.Add($key, $value)
@@ -238,6 +264,7 @@ function Create-Account
         {
             $params.Credential = $Credential
         }
+        $params.OtherAttributes
         $newAccount = New-ADUser @params
         [pscustomobject]@{
             ObjectGuid = $newAccount.ObjectGuid
@@ -245,7 +272,7 @@ function Create-Account
             SamAccountName = $names.SamAccountName
             UserPrincipalName = $names.UserPrincipalName
             AccountPassword = $password
-            ResourceBundle = $ResourceBundle
+            AccountType = $AccountType
             GivenName = $GivenName
             Surname = $Surname
             Department = $Department

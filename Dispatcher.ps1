@@ -15,7 +15,7 @@ $tasks += Get-PendingTask -TaskName RestoreLicense
 $tasks += Get-PendingTask -TaskName Delete
 $tasks += Get-PendingTask -TaskName Update
 $tasks += Get-PendingTask -TaskName Move
-$tasks += Get-PendingTask -TaskName Create | where type -eq 'Student' # Only create student accounts for now
+$tasks += Get-PendingTask -TaskName Create | where accountType -eq 'Elev' # Only create student accounts for now
 $batchId = New-LogBatch
 foreach ($task in $tasks)
 {
