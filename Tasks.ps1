@@ -192,7 +192,7 @@ function Create-Account
             CannotChangePassword = $accountConfig.CannotChangePassword
             ChangePasswordAtLogon = $accountConfig.ChangePasswordAtLogon
             PasswordNeverExpires = $accountConfig.PasswordNeverExpires
-            Enabled = $false
+            Enabled = $true
             Path = $accountConfig.DefaultLocation
             OtherAttributes = @{}
             PassThru = $true
