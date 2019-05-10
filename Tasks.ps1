@@ -264,7 +264,6 @@ function Create-Account
         {
             $params.Credential = $Credential
         }
-        $params.OtherAttributes
         $newAccount = New-ADUser @params
         [pscustomobject]@{
             ObjectGuid = $newAccount.ObjectGuid
