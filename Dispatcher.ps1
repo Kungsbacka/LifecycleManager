@@ -16,6 +16,17 @@ $tasks += Get-PendingTask -TaskName Delete
 $tasks += Get-PendingTask -TaskName Update
 $tasks += Get-PendingTask -TaskName Move
 $tasks += Get-PendingTask -TaskName Create | where accountType -eq 'Elev' # Only create student accounts for now
+$taskGroups = $tasks | Group-Object -Property task -NoElement
+foreach ($group in $taskGroups) {
+    if (-not $Script:Config.Limits.ContainsKey($group.Name))
+    {
+        throw "Configuration does not contain a limit for task '$($group.Name)'."
+    }
+    $limit = $Script:Config.Limits[$group.Name]
+    if ($group.Count -gt $limit) {
+        throw "Task '$($group.Name)' has a configured limit of $limit, but there are $($group.Count) tasks pending."
+    }
+}
 $batchId = New-LogBatch
 foreach ($task in $tasks)
 {

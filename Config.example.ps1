@@ -15,4 +15,13 @@ $Config = @{
     SmtpBody = ''
     # Used to determine which accounts belongs to employees
     EmployeeUpnSuffix = 'example.com'
+    # Sets a limit on how many tasks is processed each run. This limits the effect of bad input.
+    Limits = @{
+        Create = 100
+        Expire = 50
+        Unexpire = 50
+        RemoveLicense = 50
+        Delete = 50
+        Update = 500
+    }        
 }
