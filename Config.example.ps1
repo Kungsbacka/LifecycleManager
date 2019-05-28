@@ -24,5 +24,6 @@ $Config = @{
         RestoreLicense = 50
         Delete = 50
         Update = 500
+        Move = 100
     }
 }
