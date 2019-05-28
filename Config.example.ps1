@@ -21,7 +21,8 @@ $Config = @{
         Expire = 50
         Unexpire = 50
         RemoveLicense = 50
+        RestoreLicense = 50
         Delete = 50
         Update = 500
-    }        
+    }
 }
