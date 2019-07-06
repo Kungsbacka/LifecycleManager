@@ -50,7 +50,7 @@ Register-ScheduledTask `
 The following permissions are needed for the account running the script:
 
 * Read/write in script folder. Reports are created temporarily in this folder before they are sent.
-* Manage users in Active Directory (create, uppdate and remove)
+* Manage users in Active Directory (create, update and remove)
 * Read/write in databases MetaDirectory and ADEvents
 * Start SQL Agent job for Active Directory import
 
