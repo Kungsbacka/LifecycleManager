@@ -727,7 +727,15 @@ function Remove-MsolLicense
     )
     process
     {
-        $task = New-Object 'Kungsbacka.AccountTasks.MsolRemoveAllLicenseGroupTask'
+        $userInfo = Get-UserInfo -Identity $Identity -Credential $Credential
+        if ($userInfo.MailEnabled)
+        {
+            $task = New-Object 'Kungsbacka.AccountTasks.MicrosoftOnlinePostExpireTask'
+        }
+        else
+        {
+            $task = New-Object 'Kungsbacka.AccountTasks.MsolRemoveAllLicenseGroupTask'
+        }
         $params = @{
             Identity = $Identity
             Replace = @{'carLicense'="[$($task.ToJson())]"}
@@ -756,7 +764,21 @@ function Restore-MsolLicense
     )
     process
     {
-        $task = New-Object 'Kungsbacka.AccountTasks.MsolRestoreLicenseGroupTask'
+        $userInfo = Get-UserInfo -Identity $Identity -Credential $Credential
+        if ($userInfo.MailEnabled)
+        {
+            switch ($userInfo.AccountType)
+            {
+                'Elev'         { $mailboxType = 'Student'  }
+                'Skolpersonal' { $mailboxType = 'Faculty'  }
+                default        { $mailboxType = 'Employee' }
+            }
+            $task = New-Object 'Kungsbacka.AccountTasks.MicrosoftOnlineRestoreTask' -ArgumentList @($mailboxType)
+        }
+        else
+        {
+            $task = New-Object 'Kungsbacka.AccountTasks.MsolRestoreLicenseGroupTask'
+        }
         $params = @{
             Identity = $Identity
             Replace = @{'carLicense'="[$($task.ToJson())]"}

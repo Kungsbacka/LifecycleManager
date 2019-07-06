@@ -7,24 +7,21 @@ $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot\Report.ps1"
 . "$PSScriptRoot\Logger.ps1"
 . "$PSScriptRoot\SqlAgent.ps1"
-$tasks = @()
-$tasks += Get-PendingTask -TaskName Unexpire
-$tasks += Get-PendingTask -TaskName Expire
-$tasks += Get-PendingTask -TaskName RemoveLicense
-$tasks += Get-PendingTask -TaskName RestoreLicense
-$tasks += Get-PendingTask -TaskName Delete
-$tasks += Get-PendingTask -TaskName Update
-$tasks += Get-PendingTask -TaskName Move
-$tasks += Get-PendingTask -TaskName Create | where accountType -eq 'Elev' # Only create student accounts for now
+$tasks = Get-PendingTask -TaskName All
 $taskGroups = $tasks | Group-Object -Property task -NoElement
-foreach ($group in $taskGroups) {
-    if (-not $Script:Config.Limits.ContainsKey($group.Name))
+if (-not $Script:Config.DisableLimits)
+{
+    foreach ($group in $taskGroups)
     {
-        throw "Configuration does not contain a limit for task '$($group.Name)'."
-    }
-    $limit = $Script:Config.Limits[$group.Name]
-    if ($group.Count -gt $limit) {
-        throw "Task '$($group.Name)' has a configured limit of $limit, but there are $($group.Count) tasks pending."
+        if (-not $Script:Config.Limits.ContainsKey($group.Name))
+        {
+            throw "Configuration does not contain a limit for task '$($group.Name)'."
+        }
+        $limit = $Script:Config.Limits[$group.Name]
+        if ($group.Count -gt $limit)
+        {
+            throw "Task '$($group.Name)' has a configured limit of $limit, but there are $($group.Count) tasks pending."
+        }
     }
 }
 $batchId = New-LogBatch

@@ -114,3 +114,40 @@ function Write-LmEventLog
     $param.Message = $sb.ToString()
     Write-EventLog @param
 }
+
+function Get-UserInfo
+{
+    param
+    (
+        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $Identity,
+        [pscredential]
+        [System.Management.Automation.Credential()]
+        $Credential
+    )
+    $params = @{
+        Identity = $Identity
+        Properties = @('ExtensionAttribute11','MailNickname','MsExchRemoteRecipientType','ProxyAddresses', 'Department')
+    }
+    if ($null -ne $Credential)
+    {
+        $params.Credential = $Credential
+    }
+    try
+    {
+        $user = Get-ADUser @params -ErrorAction 'Stop'
+    }
+    catch
+    {
+        return
+    }
+    $userInfo = [pscustomobject]@{
+        MailEnabled = ($user.MailNickname -and $user.ExtensionAttribute11 -and $user.MsExchRemoteRecipientType -and $user.ProxyAddresses -like 'SMTP:*')
+        AccountType =
+            if ($user.UserPrincipalName -like '*@elev.kungsbacka.se') {'Elev'}
+            elseif ($user.Department -in ('Förskola & Grundskola', 'Gymnasium & Arbetsmarknad')) {'Skolpersonal'}
+            else {'Personal'}
+    }
+    Write-Output -InputObject $userInfo
+}
