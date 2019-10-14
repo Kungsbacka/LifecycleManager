@@ -111,7 +111,7 @@ function InternalGetStoredTask
         [string]$TaskName
     )
     $query =
-        'SELECT [task],[objectGUID],[path],[employeeNumber],[employeeType],[msDScloudExtensionAttribute10],[departmentNumber],[department],[givenName],[initials],[manager],[physicalDeliveryOfficeName],[seeAlso],[sn],[telephoneNumber],[title],[accountType] ' +
+        'SELECT [task],[objectGUID],[path],[employeeNumber],[employeeType],[msDScloudExtensionAttribute10],[departmentNumber],[department],[givenName],[initials],[manager],[physicalDeliveryOfficeName],[sn],[telephoneNumber],[title],[accountType] ' +
         'FROM dbo.LmPendingTaskView'
     if ($TaskName -ne 'All')
     {

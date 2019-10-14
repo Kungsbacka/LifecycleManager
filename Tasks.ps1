@@ -361,10 +361,6 @@ function Update-Account
         [Parameter(ValueFromPipelineByPropertyName=$true)]
         [AllowNull()]
         $Skola,
-        # Updates seeAlso attribute
-        [Parameter(ValueFromPipelineByPropertyName=$true)]
-        [AllowNull()]
-        $SeeAlso,
         # Do not try to move account
         [switch]
         $NoMove,
@@ -678,26 +674,6 @@ function Delete-Account
     if ((Get-Date).AddDays(-90) -lt $user.AccountExpirationDate)
     {
         Write-Error -Message 'Account expiration date is less than 90 days ago.' -TargetObject $Identity
-    }
-    $params = @{
-        Filter = "SeeAlso -eq '$($user.DistinguishedName.Replace("'", "''"))'"
-    }
-    if ($null -ne $Credential)
-    {
-        $params.Credential = $Credential
-    }
-    $linkedUsers = Get-ADUser @params
-    foreach ($linkedUser in $linkedUsers)
-    {
-        $params = @{
-            EmployeeNumber = $user.EmployeeNumber
-            Clear = @('SeeAlso')
-        }
-        if ($null -ne $Credential)
-        {
-            $params.Credential = $Credential
-        }
-        $linkedUser | Set-ADUser @params
     }
     $params = @{
         Identity = $Identity
