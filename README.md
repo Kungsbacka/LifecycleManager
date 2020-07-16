@@ -2,30 +2,29 @@
 
 ## Description
 
-Lifecycle Manager mangages the Active Directory user account lifecycle. It can do the following tasks:
+Lifecycle Manager manages the Active Directory user account lifecycle. It can perform the following tasks:
 
-* Create a new user account (Create-Account)
-* Update relevant properties (Update-Account)
-* Delete a user account (Delete-Account)
+* Create a new account (Create-Account)
+* Update account properties (Update-Account)
+* Delete an account (Delete-Account)
 * Set/remove expiration date (Expire-Account/Unexpire-Account)
-* Move a user account to a different OU (Move-Account)
-* Instruct Resource Manager to remove or restore an Office 365 license (Remove-MsolLicense/Restore-MsolLicense).
+* Move an account to a different location (Move-Account)
+* Instruct Resource Manager to remove or restore Microsoft 365 licenses (Remove-MsolLicense/Restore-MsolLicense).
 
-Information on what tasks to perform is read from the MetaDirectory database and processed by the dispatcher.
+Information on what tasks to perform is fetched from the MetaDirectory database and processed by the dispatcher.
 
 ## Dependencies
 
-* Assemblies: [Kungsbacka.DS](https://github.com/Kungsbacka/Kungsbacka.DS), [Kungsbacka.AccountTasks](https://github.com/Kungsbacka/Kungsbacka.AccountTasks), [Kungsbacka.CommonExtensions](https://github.com/Kungsbacka/Kungsbacka.CommonExtensions), [EPPlus](https://epplus.codeplex.com/) and [Newtonsoft Json](http://www.newtonsoft.com/json)
+* Assemblies: [Kungsbacka.DS](https://github.com/Kungsbacka/Kungsbacka.DS), [Kungsbacka.AccountTasks](https://github.com/Kungsbacka/Kungsbacka.AccountTasks), [Kungsbacka.CommonExtensions](https://github.com/Kungsbacka/Kungsbacka.CommonExtensions), [EPPlus](https://github.com/EPPlusSoftware/EPPlus) and [Newtonsoft Json](https://www.newtonsoft.com/json)
 * Databases: MetaDirectory and ADEvents (logging)
 
 ## Deploying
 
 1. Create a service account (preferably a Managed Service Account) with the appropriate permissions (see below)
 2. Create a folder on a server and copy/clone LifecycleManager to the folder
-3. Create a subfolder called lib and copy DLLs for the assemblies above to the folder (Kungsbacka.DS.dll, Kungsbacka.AccountTasks.dll, Kungsbacka.CommonExtensions.dll, EPPlus.dll and Newtonsoft.Json.dll).
-4. Rename Config.example.ps1 to Config.ps1 and update it with settings for your environment.
-5. Register a new event source on the server: [System.Diagnostics.EventLog]::CreateEventSource('LifecycleManager', 'Application')
-6. Register a scheduled task (see below)
+3. Create a sub folder called lib and copy DLLs for the assemblies above to the folder (Kungsbacka.DS.dll, Kungsbacka.AccountTasks.dll, Kungsbacka.CommonExtensions.dll, EPPlus.dll and Newtonsoft.Json.dll).
+4. Rename Config.example.ps1 to Config.ps1 and update the file with settings for your environment.
+5. Register a scheduled task (see below)
 
 ## Scheduled task
 
@@ -49,9 +48,9 @@ Register-ScheduledTask `
 
 The following permissions are needed for the account running the script:
 
-* Read/write in script folder. Reports are created temporarily in this folder before they are sent.
+* Read and write permissions in the script folder. Reports are created temporarily in this folder before they are sent.
 * Manage users in Active Directory (create, update and remove)
-* Read/write in databases MetaDirectory and ADEvents
+* Read and write permissions in databases MetaDirectory and ADEvents
 * Start SQL Agent job for Active Directory import
 
 ## Additional information
