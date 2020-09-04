@@ -215,7 +215,7 @@ function Create-Account
         }
         elseif ($AccountSource -eq 'Personalsystem')
         {
-            $params.OtherAttributes.Add('gidNumber', 2)
+            $params.OtherAttributes.Add('gidNumber', 1)
         }
         $tasks = $accountConfig.AccountTasks
         if ($tasks.Count -gt 0)
