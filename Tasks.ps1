@@ -32,7 +32,7 @@ function Expire-Account
             $params.Credential = $Credential
         }
         $user = Get-ADUser @params
-        # Don't touch the account if an expiration date is set and it's in the future
+        # Don't touch the account if an expiration date is set and if it's in the future
         if ($user.AccountExpirationDate -gt (Get-Date))
         {
             return
