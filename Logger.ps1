@@ -82,6 +82,7 @@ function New-LogEntry
 
 function Serialize-DataRow
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseApprovedVerbs", "")]
     param
     (
         [Parameter(Mandatory, ValueFromPipeline)]

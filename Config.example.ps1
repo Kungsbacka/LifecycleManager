@@ -1,4 +1,5 @@
 ﻿# Configuration
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "")]
 $Config = @{
     # See Secure.ps1 for more details
     EncryptionKey = ''

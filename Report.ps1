@@ -83,6 +83,7 @@ function Send-NewAccountReport
 
 function Export-NewAccountReport
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "")]
     param
     (
         # Object array to export

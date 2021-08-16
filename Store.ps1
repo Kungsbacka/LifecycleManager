@@ -3,6 +3,8 @@ $ErrorActionPreference = 'Stop'
 
 function Store-NewAccount
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseApprovedVerbs", "")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPlainTextForPassword", "")]
     param
     (
         [Parameter(Mandatory, ValueFromPipelineByPropertyName)]

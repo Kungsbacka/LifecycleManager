@@ -9,6 +9,7 @@ $Script:AccountNamesFactory = New-Object -TypeName 'Kungsbacka.DS.AccountNamesFa
 
 function Expire-Account
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseApprovedVerbs", "")]
     param
     (
         # Identity is passed unmodified to AD cmdlets
@@ -51,6 +52,7 @@ function Expire-Account
 
 function Unexpire-Account
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseApprovedVerbs", "")]
     param
     (
         # Identity is passed unmodified to AD cmdlets
@@ -77,6 +79,7 @@ function Unexpire-Account
 
 function Create-Account
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseApprovedVerbs", "")]
     param
     (
         # Fristname
@@ -652,6 +655,7 @@ function Move-Account
 
 function Delete-Account
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseApprovedVerbs", "")]
     param
     (
         [Alias('ObjectGuid')]
