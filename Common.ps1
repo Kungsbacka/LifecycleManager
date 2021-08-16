@@ -1,6 +1,7 @@
 ﻿# "Popular high-performance JSON framework for .NET"
 # http://www.newtonsoft.com/json
 Add-Type -Path "$PSScriptRoot\lib\Newtonsoft.Json.dll"
+Add-Type -Path "$PSScriptRoot\lib\Kungsbacka.DS.dll"
 . "$PSScriptRoot\Config.ps1"
 
 function ConvertTo-NewtonsoftJson
@@ -128,7 +129,7 @@ function Get-UserInfo
     )
     $params = @{
         Identity = $Identity
-        Properties = @('ExtensionAttribute11','MailNickname','MsExchRemoteRecipientType','ProxyAddresses', 'Department')
+        Properties = @('ExtensionAttribute11','MailNickname','MsExchRemoteRecipientType','ProxyAddresses', 'Department','MemberOf')
     }
     if ($null -ne $Credential)
     {
@@ -142,8 +143,19 @@ function Get-UserInfo
     {
         return
     }
+    $licenseGroup = $null
+    foreach($group in $user.MemberOf)
+    {
+        if ($group -like 'CN=G-Licens-A-*')
+        {
+            $licenseGroup = [Kungsbacka.DS.DSFactory]::GetLicenseGroup($group)
+            break
+        }
+    }
+    $mailEnabledLicense = ($null -ne $licenseGroup -and $licenseGroup.MailEnabled)
+    $mailEnabledUser = ($user.MailNickname -and $user.ExtensionAttribute11 -and $user.MsExchRemoteRecipientType -and $user.ProxyAddresses -like 'SMTP:*')
     $userInfo = [pscustomobject]@{
-        MailEnabled = ($user.MailNickname -and $user.ExtensionAttribute11 -and $user.MsExchRemoteRecipientType -and $user.ProxyAddresses -like 'SMTP:*')
+        MailEnabled = ($mailEnabledLicense -and $mailEnabledUser)
         AccountType =
             if ($user.UserPrincipalName -like '*@elev.kungsbacka.se') {'Elev'}
             elseif ($user.Department -in ('Förskola & Grundskola', 'Gymnasium & Arbetsmarknad')) {'Skolpersonal'}
