@@ -129,9 +129,17 @@ function Get-UserInfo
     )
     $params = @{
         Identity = $Identity
-        Properties = @('ExtensionAttribute11','MailNickname','MsExchRemoteRecipientType','ProxyAddresses', 'Department','MemberOf')
+        Properties = @(
+            'ExtensionAttribute11'
+            'MailNickname'
+            'MsExchRemoteRecipientType'
+            'ProxyAddresses'
+            'Department'
+            'MemberOf'
+            'msDS-cloudExtensionAttribute1'
+        )
     }
-    if ($null -ne $Credential)
+    if ($Credential)
     {
         $params.Credential = $Credential
     }
@@ -144,7 +152,7 @@ function Get-UserInfo
         return
     }
     $licenseGroup = $null
-    foreach($group in $user.MemberOf)
+    foreach ($group in $user.MemberOf)
     {
         if ($group -like 'CN=G-Licens-A-*')
         {
@@ -152,7 +160,19 @@ function Get-UserInfo
             break
         }
     }
-    $mailEnabledLicense = ($null -ne $licenseGroup -and $licenseGroup.MailEnabled)
+    if (-not $licenseGroup -and $user.'msDS-cloudExtensionAttribute1')
+    {
+        $temp = $user.'msDS-cloudExtensionAttribute1' -split ','
+        foreach ($guid in $temp)
+        {
+            $licenseGroup = [Kungsbacka.DS.DSFactory]::GetLicenseGroup([guid]$guid)
+            if ($licenseGroup -and $licenseGroup.Category -eq 'A')
+            {
+                break
+            }
+        }
+    }
+    $mailEnabledLicense = ($licenseGroup -and $licenseGroup.MailEnabled)
     $mailEnabledUser = ($user.MailNickname -and $user.ExtensionAttribute11 -and $user.MsExchRemoteRecipientType -and $user.ProxyAddresses -like 'SMTP:*')
     $userInfo = [pscustomobject]@{
         MailEnabled = ($mailEnabledLicense -and $mailEnabledUser)
