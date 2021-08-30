@@ -89,6 +89,7 @@ function InternalGetCurrentTask
     )
     $query = 'SELECT * FROM dbo.ufLmGetPendingLifecycleTask(@task, 1)' # 1 = Do not include renames
     $cmd = Get-SqlCommand -Database MetaDirectory -Type Text -Text $query
+    $cmd.CommandTimeout = 120
     if ($TaskName -eq 'All')
     {
         [void]$cmd.Parameters.AddWithValue('@task', [DBNull]::Value)
@@ -113,7 +114,7 @@ function InternalGetStoredTask
         [string]$TaskName
     )
     $query =
-        'SELECT [task],[objectGUID],[path],[employeeNumber],[employeeType],[msDScloudExtensionAttribute10],[departmentNumber],[department],[givenName],[initials],[manager],[physicalDeliveryOfficeName],[sn],[telephoneNumber],[title],[accountType] ' +
+        'SELECT [task],[objectGUID],[path],[employeeNumber],[employeeType],[msDScloudExtensionAttribute9],[msDScloudExtensionAttribute10],[departmentNumber],[department],[givenName],[initials],[manager],[physicalDeliveryOfficeName],[sn],[telephoneNumber],[title],[accountType] ' +
         'FROM dbo.LmPendingTaskView'
     if ($TaskName -ne 'All')
     {

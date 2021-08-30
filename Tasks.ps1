@@ -359,6 +359,11 @@ function Update-Account
         [Parameter(ValueFromPipelineByPropertyName=$true)]
         [AllowNull()]
         $Path,
+        # Updates msDS-cloudExtensionAttribute9 attribute
+        [Alias('MsDsCloudExtensionAttribute9')]
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
+        [AllowNull()]
+        $Skolenhetskod,
         # Updates msDS-cloudExtensionAttribute10 attribute
         [Alias('MsDsCloudExtensionAttribute10')]
         [Parameter(ValueFromPipelineByPropertyName=$true)]
@@ -406,6 +411,10 @@ function Update-Account
             elseif ($name -eq 'MobilePhone')
             {
                 $name = 'employeeType'
+            }
+            elseif ($name -eq 'Skolenhetskod')
+            {
+                $name = 'msDS-cloudExtensionAttribute9'
             }
             elseif ($name -eq 'Skola')
             {
