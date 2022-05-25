@@ -40,12 +40,13 @@ function Expire-Account
         }
         $params = @{
             Identity = $Identity
-            DateTime = [DateTime]::Today
         }
         if ($null -ne $Credential)
         {
             $params.Credential = $Credential
         }
+        Disable-ADAccount @params
+        $params.DateTime = [DateTime]::Today
         Set-ADAccountExpiration @params
     }
 }
@@ -74,6 +75,7 @@ function Unexpire-Account
             $params.Credential = $Credential
         }
         Clear-ADAccountExpiration @params
+        Enable-ADAccount @params
     }
 }
 
