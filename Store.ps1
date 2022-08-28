@@ -81,6 +81,75 @@ function Get-PendingTask
     }
 }
 
+function Get-Limits
+{
+    if ($null -ne $Script:Config.Limits -and $null -ne $Script:Config.DisableLimits) {
+        $limits = InternalGetLimitsFromConfig
+        $source = 'configuration file'
+    }
+    else {
+        $limits = InternalGetLimitsFromDatabase
+        $source = 'database'
+    }
+    $mandatory = @('DisableLimits', 'Create', 'Expire', 'Unexpire', 'RemoveLicense', 'RestoreLicense', 'Delete', 'Update', 'Move')
+    foreach ($name in $mandatory) {
+        if ($null -eq $limits[$name] -or ($limits[$name] -is [int] -and $limits[$name] -eq 0)) {
+            throw "Configuration for limits is not complete in $source. Missing or misconfigured entry: $name"
+        }
+    }
+    Write-Output $limits
+}
+
+function InternalGetLimitsFromConfig
+{
+    $limits = $Script:Config.Limits
+    $limits['DisableLimits'] = $Script:Config.DisableLimits
+    Write-Output $limits
+}
+
+function InternalGetLimitsFromDatabase
+{
+    $query = "SELECT [name],[value] FROM dbo.LmConfig WHERE [name] LIKE 'Limit.%'"
+    $limits = @{
+        DisableLimits = $null
+        Create = 0
+        Expire = 0
+        Unexpire = 0
+        RemoveLicense = 0
+        RestoreLicense = 0
+        Delete = 0
+        Update = 0
+        Move = 0
+    }
+    try {
+        $cmd = Get-SqlCommand -Database MetaDirectory -Type Text -Text $query
+        $reader = $cmd.ExecuteReader()
+        while ($reader.Read()) {
+            $name = $reader['name']
+            $value = $reader['value']
+            $name = $name.Split('.')[1]
+            if ($null -eq $name) {
+                throw 'Invalid configuration entry in database.'
+            }
+            if ($name -eq 'DisableLimits') {
+                $limits.DisableLimits = [bool]::Parse($value)
+            }
+            else {
+                $limits[$name] = [int]$value
+            }
+        }
+    }
+    finally {
+        if ($cmd) {
+            $cmd.Dispose()
+        }
+        if ($reader) {
+            $reader.Dispose()
+        }
+    }
+    Write-Output $limits
+}
+
 function InternalGetCurrentTask
 {
     param
@@ -88,23 +157,33 @@ function InternalGetCurrentTask
         [string]$TaskName
     )
     $query = 'SELECT * FROM dbo.ufLmGetPendingLifecycleTask(@task, 1)' # 1 = Do not include renames
-    $cmd = Get-SqlCommand -Database MetaDirectory -Type Text -Text $query
-    $cmd.CommandTimeout = 120
-    if ($TaskName -eq 'All')
-    {
-        [void]$cmd.Parameters.AddWithValue('@task', [DBNull]::Value)
+    try {
+        $cmd = Get-SqlCommand -Database MetaDirectory -Type Text -Text $query
+        $cmd.CommandTimeout = 120
+        if ($TaskName -eq 'All')
+        {
+            [void]$cmd.Parameters.AddWithValue('@task', [DBNull]::Value)
+        }
+        else
+        {
+            [void]$cmd.Parameters.AddWithValue('@task', $TaskName)
+        }
+        $reader = $cmd.ExecuteReader()
+        $table = New-Object 'System.Data.DataTable'
+        if ($reader.HasRows)
+        {
+            $table.Load($reader)
+        }
+        Write-Output $table.Rows
     }
-    else
-    {
-        [void]$cmd.Parameters.AddWithValue('@task', $TaskName)
+    finally {
+        if ($cmd) {
+            $cmd.Dispose()
+        }
+        if ($reader) {
+            $reader.Dispose()
+        }
     }
-    $reader = $cmd.ExecuteReader()
-    $table = New-Object 'System.Data.DataTable'
-    if ($reader.HasRows)
-    {
-        $table.Load($reader)
-    }
-    Write-Output $table.Rows
 }
 
 function InternalGetStoredTask
@@ -121,13 +200,23 @@ function InternalGetStoredTask
         $query += " WHERE [task] = '$TaskName'"
     }
     $query += ' ORDER BY [sortOrder] ASC'
-    $cmd = Get-SqlCommand -Database MetaDirectory -Type Text -Text $query
-    $reader = $cmd.ExecuteReader()
-    $table = New-Object 'System.Data.DataTable'
-    if ($reader.HasRows)
-    {
-        $table.Load($reader)
+    try {
+        $cmd = Get-SqlCommand -Database MetaDirectory -Type Text -Text $query
+        $reader = $cmd.ExecuteReader()
+        $table = New-Object 'System.Data.DataTable'
+        if ($reader.HasRows)
+        {
+            $table.Load($reader)
+        }
+        Write-Output $table.Rows
     }
-    Write-Output $table.Rows
+    finally {
+        if ($cmd) {
+            $cmd.Dispose()
+        }
+        if ($reader) {
+            $reader.Dispose()
+        }
+    }
 }
 

@@ -7,17 +7,19 @@ $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot\Report.ps1"
 . "$PSScriptRoot\Logger.ps1"
 . "$PSScriptRoot\SqlAgent.ps1"
-$tasks = Get-PendingTask -TaskName All
+
+$taskLimits = Get-Limits
+$tasks = Get-PendingTask -TaskName All | Where-Object accountType -in $Script:Config.IncludedAccountTypes
 $taskGroups = $tasks | Group-Object -Property task -NoElement
-if (-not $Script:Config.DisableLimits)
+if (-not $taskLimits.DisableLimits)
 {
     foreach ($group in $taskGroups)
     {
-        if (-not $Script:Config.Limits.ContainsKey($group.Name))
+        if (-not $taskLimits.ContainsKey($group.Name))
         {
             throw "Configuration does not contain a limit for task '$($group.Name)'."
         }
-        $limit = $Script:Config.Limits[$group.Name]
+        $limit = $taskLimits[$group.Name]
         if ($group.Count -gt $limit)
         {
             throw "Task '$($group.Name)' has a configured limit of $limit, but there are $($group.Count) tasks pending."
