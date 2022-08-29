@@ -95,6 +95,10 @@ catch
     New-LogEntry -TaskName Report -BatchId $batchId -ErrorObject $_
     $_ | Write-LmEventLog
 }
+
+# Sleep to let domain controllers sync changes before full AD import
+Start-Sleep -Seconds 60
+
 try
 {
     Start-ActiveDirectoryImportJob
