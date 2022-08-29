@@ -95,10 +95,25 @@ function Get-Limits
     foreach ($name in $mandatory) {
         if ($null -eq $limits[$name] -or ($limits[$name] -is [int] -and $limits[$name] -eq 0)) {
             throw "Configuration for limits is not complete in $source. Missing or misconfigured entry: $name"
+            return
         }
     }
     Write-Output $limits
 }
+
+function Enable-Limits
+{
+    try {
+        $cmd = Get-SqlCommand -Database MetaDirectory -Type Text -Text "UPDATE dbo.LmConfig SET [value]='false' WHERE [name]='Limit.DisableLimits'"
+        $null = $cmd.ExecuteNonQuery()
+    }
+    finally {
+        if ($cmd) {
+            $cmd.Dispose()
+        }
+    }
+}
+
 
 function InternalGetLimitsFromConfig
 {
@@ -130,6 +145,7 @@ function InternalGetLimitsFromDatabase
             $name = $name.Split('.')[1]
             if ($null -eq $name) {
                 throw 'Invalid configuration entry in database.'
+                return
             }
             if ($name -eq 'DisableLimits') {
                 $limits.DisableLimits = [bool]::Parse($value)

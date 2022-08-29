@@ -213,6 +213,7 @@ function Create-Account
         elseif ($accountConfig.RequireEmployeeNumber)
         {
             throw 'This account type requires an employee number, but a value for parameter EmployeeNumber was not supplied.'
+            return
         }
         if ($AccountSource -eq 'Elevregister')
         {

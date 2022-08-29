@@ -11,18 +11,22 @@ $ErrorActionPreference = 'Stop'
 $taskLimits = Get-Limits
 $tasks = Get-PendingTask -TaskName All | Where-Object accountType -in $Script:Config.IncludedAccountTypes
 $taskGroups = $tasks | Group-Object -Property task -NoElement
-if (-not $taskLimits.DisableLimits)
-{
+if ($taskLimits.DisableLimits) {
+    Enable-Limits
+}
+else {
     foreach ($group in $taskGroups)
     {
         if (-not $taskLimits.ContainsKey($group.Name))
         {
             throw "Configuration does not contain a limit for task '$($group.Name)'."
+            return
         }
         $limit = $taskLimits[$group.Name]
         if ($group.Count -gt $limit)
         {
             throw "Task '$($group.Name)' has a configured limit of $limit, but there are $($group.Count) tasks pending."
+            return
         }
     }
 }
