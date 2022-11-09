@@ -69,7 +69,7 @@ function New-LogEntry
         }
         if ($ErrorObject)
         {
-            $spParams.ErrorJson = $ErrorObject | ConvertTo-NewtonsoftJson
+            $spParams.Error = $ErrorObject.Exception.ToString()
         }
         $params = @{
             Database = 'ADEvents'

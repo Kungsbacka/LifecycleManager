@@ -53,6 +53,104 @@ The following permissions are needed for the account running the script:
 * Read and write permissions in databases MetaDirectory and ADEvents
 * Start SQL Agent job for Active Directory import
 
+## Log Database
+
+```SQL
+CREATE TABLE [dbo].[LmBatch] (
+    [id] [int] IDENTITY(1,1) NOT NULL,
+    [started] [datetime] NOT NULL,
+    [ended] [datetime] NULL,
+    CONSTRAINT [PK_ApBatch] PRIMARY KEY CLUSTERED ([id])
+);
+
+CREATE TABLE [dbo].[LmLog](
+    [id] [int] IDENTITY(1,1) NOT NULL,
+    [batchId] [int] NOT NULL,
+    [task] [nvarchar](50) NOT NULL,
+    [completed] [datetime] NOT NULL,
+    [employeeNumber] [nvarchar](512) NOT NULL,
+    [objectGUID] [uniqueidentifier] NULL,
+    [taskJson] [nvarchar](2000) NULL,
+    [error] [nvarchar](2000) NULL,
+    CONSTRAINT [PK_LmLog] PRIMARY KEY CLUSTERED ([id])
+);
+
+CREATE PROCEDURE [dbo].[spLmEndBatch]
+    @batchId int
+AS
+BEGIN
+
+    UPDATE
+        dbo.LmBatch
+    SET
+        ended = GETDATE()
+    WHERE
+        id = @batchId
+    AND
+        ended IS NULL
+
+    IF @@ROWCOUNT = 0
+        THROW 50000, 'Failed to end batch', 1
+END;
+
+CREATE PROCEDURE [dbo].[spLmGetBatch]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    DECLARE @batchId int;
+
+    SELECT @batchId = (
+        SELECT MAX(id) FROM dbo.LmBatch
+        WHERE ended IS NULL
+    );
+
+    IF @batchId IS NULL
+    BEGIN
+        INSERT INTO dbo.LmBatch (started)
+        VALUES (GETDATE());
+        SELECT @batchId = SCOPE_IDENTITY();
+    END
+
+    SELECT @batchId;
+END;
+
+CREATE PROCEDURE [dbo].[spLmNewLogEntry]
+      @batchId int
+    , @task nvarchar(50)
+    , @employeeNumber nvarchar(512)
+    , @objectGUID uniqueidentifier = NULL
+    , @taskJson nvarchar(2000) = NULL
+    , @error nvarchar(2000) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    IF NOT EXISTS (SELECT 1 FROM dbo.LmBatch WHERE id = @batchId AND ended IS NULL)
+        THROW 50000, 'No open batch with requested ID exists', 1
+
+    INSERT INTO
+        dbo.LmLog (
+            [batchId]
+          , [task]
+          , [completed]
+          , [employeeNumber]
+          , [objectGUID]
+          , [taskJson]
+          , [error]
+    )
+    VALUES (
+        @batchId
+      , @task
+      , GETDATE()
+      , @employeeNumber
+      , @objectGUID
+      , @taskJson
+      , @error
+    )
+END;
+```
+
 ## Additional information
 
 This solution is tailored specifically for Kungsbacka municipality. Schema for the two databases are not included here, but may get published later.
