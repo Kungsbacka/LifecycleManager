@@ -153,4 +153,4 @@ END;
 
 ## Additional information
 
-This solution is tailored specifically for Kungsbacka municipality. Schema for the two databases are not included here, but may get published later.
+This solution is tailored specifically for Kungsbacka municipality. Schema for the MetaDirectory database is not publicly available. 
