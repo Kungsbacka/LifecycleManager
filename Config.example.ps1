@@ -16,6 +16,8 @@ $Config = @{
     SmtpFrom = ''
     SmtpSubject = ''
     SmtpBody = ''
+    # Recipient that gets a report with all new accounts (can be omitted)
+    AllAccountsRecipient = ''
     # Used to determine which accounts belongs to employees
     EmployeeUpnSuffix = 'example.com'
     # Only tasks for account types in the array below will be performed
