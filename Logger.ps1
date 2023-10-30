@@ -17,7 +17,7 @@ function Close-LogBatch
 {
     param
     (
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory=$true)]
         [int]
         $BatchId
     )
@@ -35,14 +35,13 @@ function New-LogEntry
 {
     param
     (
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory=$true)]
         [ValidateSet('Expire', 'Unexpire', 'RemoveLicense', 'RestoreLicense', 'Delete', 'Update', 'Move', 'Create', 'Report', 'ADImport')]
         [string]
         $TaskName,
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory=$true)]
         [int]
         $BatchId,
-        [Parameter(Mandatory)]
         [string]
         $EmployeeNumber,
         [string]
@@ -85,7 +84,7 @@ function Serialize-DataRow
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseApprovedVerbs", "")]
     param
     (
-        [Parameter(Mandatory, ValueFromPipeline)]
+        [Parameter(Mandatory=$true,ValueFromPipeline=$true)]
         [System.Data.DataRow]
         $DataRow
     )
