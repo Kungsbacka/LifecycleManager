@@ -1,8 +1,8 @@
-﻿# Lifecycle Manager
+﻿# LifecycleManager
 
 ## Description
 
-Lifecycle Manager manages the Active Directory user account lifecycle. It can perform the following tasks:
+LifecycleManager manages the Active Directory user account lifecycle. It can perform the following tasks:
 
 * Create a new account (Create-Account)
 * Update account properties (Update-Account)
@@ -28,7 +28,7 @@ Information on what tasks to perform is fetched from the MetaDirectory database 
 
 ## Scheduled task
 
-This is a template script for creating a scheduled task that runs Lifecycle Manager
+This is a template script for creating a scheduled task that runs LifecycleManager
 
 ```powershell
 Register-ScheduledTask `
@@ -153,4 +153,4 @@ END;
 
 ## Additional information
 
-This solution is tailored specifically for Kungsbacka municipality. Schema for the MetaDirectory database is not publicly available. 
+This solution is tailored specifically for Kungsbacka municipality. Schema for the MetaDirectory database is not publicly available.
