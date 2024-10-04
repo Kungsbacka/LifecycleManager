@@ -357,6 +357,11 @@ function Update-Account
         [Parameter(ValueFromPipelineByPropertyName=$true)]
         [AllowNull()]
         $Title,
+        # Updates l attribute
+        [Alias('L', 'LocalityName')]
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
+        [AllowNull()]
+        $City,
         # Moves the account to the OU specified by Path. As a side affect the cn (common name)
         # can also change to avoid a naming conflict.
         [Parameter(ValueFromPipelineByPropertyName=$true)]
@@ -422,6 +427,10 @@ function Update-Account
             elseif ($name -eq 'Skola')
             {
                 $name = 'msDS-cloudExtensionAttribute10'
+            }
+            elseif ($name -eq 'City')
+            {
+                $name = 'l'
             }
             if ($value -or $value -eq 0)
             {

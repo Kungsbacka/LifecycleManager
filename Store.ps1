@@ -114,6 +114,25 @@ function Enable-Limits
     }
 }
 
+function Get-IncludedAccountTypes
+{
+    try {
+        $cmd = Get-SqlCommand -Database MetaDirectory -Type Text -Text "SELECT [value] FROM dbo.LmConfig WHERE [name]='IncludedAccountTypes'"
+        $rdr = $cmd.ExecuteReader()
+        while ($rdr.Read()) {
+            $accountTypes = $rdr.GetString(0)
+        }
+        $accountTypes -split ','
+    }
+    finally {
+        if ($rdr) {
+            $rdr.Dispose()
+        }
+        if ($cmd) {
+            $cmd.Dispose()
+        }
+    }
+}
 
 function InternalGetLimitsFromConfig
 {
@@ -209,7 +228,7 @@ function InternalGetStoredTask
         [string]$TaskName
     )
     $query =
-        'SELECT [task],[objectGUID],[path],[employeeNumber],[employeeType],[msDScloudExtensionAttribute9],[msDScloudExtensionAttribute10],[departmentNumber],[department],[givenName],[initials],[manager],[physicalDeliveryOfficeName],[sn],[telephoneNumber],[title],[accountType] ' +
+        'SELECT [task],[objectGUID],[path],[employeeNumber],[employeeType],[msDScloudExtensionAttribute9],[msDScloudExtensionAttribute10],[departmentNumber],[department],[givenName],[initials],[manager],[physicalDeliveryOfficeName],[sn],[telephoneNumber],[title],[localityName],[accountType] ' +
         'FROM dbo.LmPendingTaskView'
     if ($TaskName -ne 'All')
     {
@@ -236,3 +255,7 @@ function InternalGetStoredTask
     }
 }
 
+function InternalGetAccountConfiguration
+{
+    
+}
