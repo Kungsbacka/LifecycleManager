@@ -83,6 +83,7 @@ function Send-NewAccountReport
 
 function Export-NewAccountReport
 {
+    # False positive. $i is both declared *and* used
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "")]
     param
     (
