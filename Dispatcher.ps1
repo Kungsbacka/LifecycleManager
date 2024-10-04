@@ -9,7 +9,8 @@ $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot\SqlAgent.ps1"
 
 $taskLimits = Get-Limits
-$tasks = Get-PendingTask -TaskName All | Where-Object accountType -in $Script:Config.IncludedAccountTypes
+$includedAccountTypes = Get-IncludedAccountTypes
+$tasks = Get-PendingTask -TaskName All | Where-Object accountType -in @($includedAccountTypes)
 $taskGroups = $tasks | Group-Object -Property task -NoElement
 if ($taskLimits.DisableLimits) {
     Enable-Limits
