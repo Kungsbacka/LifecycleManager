@@ -204,7 +204,12 @@ function Get-AccountConfiguration
             $h = @{}
             foreach ($c in $columns) {
                 $key = $c.Substring(0, 1).ToUpper() + $c.Substring(1)
-                $h[$key] = $reader[$c]
+                if ($reader[$c] -eq [DBNull]::Value) {
+                    $h[$key] = $null
+                }
+                else {
+                    $h[$key] = $reader[$c]
+                }
             }
             return [pscustomobject]$h
         }

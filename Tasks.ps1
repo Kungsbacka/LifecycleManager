@@ -218,11 +218,9 @@ function Create-Account
         {
             $params.OtherAttributes.Add('gidNumber', 1)
         }
-        $tasks = $accountConfig.AccountTasks
-        if ($tasks.Count -gt 0)
+        if (-not [string]::IsNullOrEmpty($accountConfig.AccountTasks))
         {
-            $json =  ConvertTo-NewtonsoftJson -InputObject $tasks
-            $params.OtherAttributes.Add('carLicense', $json)
+            $params.OtherAttributes.Add('carLicense', $accountConfig.AccountTasks)
         }
         $optionalParameters = @(
             'Office'
