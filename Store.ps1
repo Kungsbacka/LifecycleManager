@@ -134,6 +134,91 @@ function Get-IncludedAccountTypes
     }
 }
 
+function Get-AccountTypes
+{
+    try {
+        $cmd = Get-SqlCommand -Database MetaDirectory -Type Text -Text "SELECT [accountType] FROM dbo.LmAccountConfiguration"
+        $rdr = $cmd.ExecuteReader()
+        while ($rdr.Read()) {
+            $rdr.GetString(0)
+        }
+    }
+    finally {
+        if ($rdr) {
+            $rdr.Dispose()
+        }
+        if ($cmd) {
+            $cmd.Dispose()
+        }
+    }
+}
+
+function Get-AccountConfiguration
+{
+    param
+    (
+        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
+        [ArgumentCompleter(
+            {
+                param ($Command, $Parameter, $WordToComplete, $CommandAst, $FakeBoundParams)
+                Get-AccountTypes
+            }
+        )]
+        [ValidateScript({$_ -in (Get-AccountTypes)})]
+        [string]
+        $AccountType
+   )
+
+    $columns = @(
+        'accountType'
+        'accountTypeDescription'
+        'upnSuffix'
+        'defaultLocation'
+        'accountNamePrefix'
+        'accountTasks'
+        'hasMail'
+        'isManaged'
+        'requireEmployeeNumber'
+        'requireDescription'
+        'requirePhoneNumber'
+        'requireDepartment'
+        'requireOffice'
+        'requireEmailAddress'
+        'requireCompany'
+        'cannotChangePassword'
+        'changePasswordAtLogon'
+        'passwordNeverExpires'
+        'expiresOnCreation'
+        'linkUpnAndSam'
+        'addBirthYearAsSamPrefix'
+        'defaultGroups'
+    )
+
+    $query = "SELECT [$($columns -join '],[')] FROM dbo.LmAccountConfiguration WHERE [accountType] = @accountType"
+ 
+    try {
+        $cmd = Get-SqlCommand -Database MetaDirectory -Type Text -Text $query
+        [void]$cmd.Parameters.AddWithValue('@accountType', $AccountType.ToString())
+        $reader = $cmd.ExecuteReader()
+        while ($reader.Read()) {
+            $h = @{}
+            foreach ($c in $columns) {
+                $key = $c.Substring(0, 1).ToUpper() + $c.Substring(1)
+                $h[$key] = $reader[$c]
+            }
+            return [pscustomobject]$h
+        }
+    }
+    finally {
+        if ($cmd) {
+            $cmd.Dispose()
+        }
+        if ($reader) {
+            $reader.Dispose()
+        }
+    }
+}
+
 function InternalGetLimitsFromConfig
 {
     $limits = $Script:Config.Limits
@@ -253,9 +338,4 @@ function InternalGetStoredTask
             $reader.Dispose()
         }
     }
-}
-
-function InternalGetAccountConfiguration
-{
-    
 }

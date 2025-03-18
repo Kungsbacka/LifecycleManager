@@ -2,7 +2,6 @@
 $ErrorActionPreference = 'Stop'
 Import-Module -Name 'ActiveDirectory'
 Add-Type -Path "$PSScriptRoot\lib\Kungsbacka.CommonExtensions.dll"
-Add-Type -Path "$PSScriptRoot\lib\Kungsbacka.AccountConfiguration.dll"
 Add-Type -Path "$PSScriptRoot\lib\Kungsbacka.AccountTasks.dll"
 Add-Type -Path "$PSScriptRoot\lib\Kungsbacka.DS.dll"
 $Script:AccountNamesFactory = New-Object -TypeName 'Kungsbacka.DS.AccountNamesFactory'
@@ -99,14 +98,10 @@ function Create-Account
         [ArgumentCompleter(
             {
                 param ($Command, $Parameter, $WordToComplete, $CommandAst, $FakeBoundParams)
-                [Enum]::GetNames([Kungsbacka.AccountConfiguration.AccountType])
+                Get-AccountTypes
             }
         )]
-        [ValidateScript(
-            {
-                $_ -in [Enum]::GetNames([Kungsbacka.AccountConfiguration.AccountType])
-            }
-        )]
+        [ValidateScript({$_ -in (Get-AccountTypes)})]
         [string]
         $AccountType,
         # Personnummer. Optional, but if AccountConfiguration for
@@ -170,7 +165,7 @@ function Create-Account
     )
     process
     {
-        $accountConfig = [Kungsbacka.AccountConfiguration.AccountConfiguration]::GetConfiguration($AccountType)
+        $accountConfig = Get-AccountConfiguration -AccountType $AccountType
         $empNo = $null
         if ($accountConfig.AddBirthYearAsSamPrefix)
         {
