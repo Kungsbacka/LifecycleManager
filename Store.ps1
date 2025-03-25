@@ -204,7 +204,7 @@ function Get-AccountConfiguration
             $h = @{}
             foreach ($c in $columns) {
                 $key = $c.Substring(0, 1).ToUpper() + $c.Substring(1)
-                if ($reader[$c] -eq [DBNull]::Value) {
+                if ($reader[$c] -is [DBNull]) {
                     $h[$key] = $null
                 }
                 else {
