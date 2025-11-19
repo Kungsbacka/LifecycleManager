@@ -7,10 +7,6 @@ $Config = @{
     MetaDirectoryConnectionString = ''
     # All logging is done to this database. Critical errors are also written to the event log.
     ADEventsConnectionString = ''
-    # Server that runs the SSIS package for Active Directory import
-    SqlAgentServer = ''
-    # Name of the SQL Agent job for Active Directory import
-    SqlAgentJob = 'Import Active Directory'
     # Configuration used for sending reports
     SmtpServer = ''
     SmtpFrom = ''

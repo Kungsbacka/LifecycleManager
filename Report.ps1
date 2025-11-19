@@ -22,17 +22,7 @@ function Send-NewAccountReport
         $DoNotMarkReported
     )
     
-    # To be able to run this function as a gMSA where the environment can be restricted,
-    # we write the attachments to a location we know exists and should be writable.
-    if ($Script:PSScriptRoot)
-    {
-        $reportPath = $Script:PSScriptRoot
-    }
-    else
-    {
-        $reportPath = Convert-Path -Path .
-    }
-    $reportPath = Join-Path -Path $reportPath -ChildPath 'elevkonton.xlsx'
+    $reportPath = Join-Path -Path $env:TEMP -ChildPath 'elevkonton.xlsx'
     $query = 'SELECT * FROM dbo.LmNewAccountView'
     $cmd = Get-SqlCommand -Database MetaDirectory -Type Text -CommandText $query
     $reader = $cmd.ExecuteReader()

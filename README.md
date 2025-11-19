@@ -24,7 +24,8 @@ Information on what tasks to perform is fetched from the MetaDirectory database 
 2. Create a folder on a server and copy/clone LifecycleManager to the folder
 3. Create a sub folder called lib and copy DLLs for the assemblies above to the folder (Kungsbacka.DS.dll, Kungsbacka.AccountTasks.dll, Kungsbacka.CommonExtensions.dll, EPPlus.dll and Newtonsoft.Json.dll).
 4. Rename Config.example.ps1 to Config.ps1 and update the file with settings for your environment.
-5. Register a scheduled task (see below)
+5. Create a new Event Log Source: `New-EventLog -LogName Application -Source LifecycleManager`
+6. Register a scheduled task (see below)
 
 ## Scheduled task
 

@@ -6,7 +6,6 @@ $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot\Store.ps1"
 . "$PSScriptRoot\Report.ps1"
 . "$PSScriptRoot\Logger.ps1"
-. "$PSScriptRoot\SqlAgent.ps1"
 
 $taskLimits = Get-Limits
 $includedAccountTypes = Get-IncludedAccountTypes
@@ -101,16 +100,4 @@ catch
     $_ | Write-LmEventLog
 }
 
-# Sleep to let domain controllers sync changes before full AD import
-Start-Sleep -Seconds 60
-
-try
-{
-    Start-ActiveDirectoryImportJob
-}
-catch
-{
-    New-LogEntry -TaskName ADImport -BatchId $batchId -ErrorObject $_
-    $_ | Write-LmEventLog
-}
 Close-LogBatch -BatchId $batchId
