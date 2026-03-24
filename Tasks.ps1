@@ -171,7 +171,7 @@ function Create-Account
         {
             $empNo = $EmployeeNumber
         }
-        $names =  $Script:AccountNamesFactory.GetNames(
+        $names = $Script:AccountNamesFactory.GetNames(
             $GivenName,
             $Surname,
             $accountConfig.UpnSuffix,
@@ -783,4 +783,87 @@ function Restore-MsolLicense
         }
         Set-ADUser @params
     }
+}
+
+function Change-MsolLicense
+{
+    param
+    (
+        # Identity is passed unmodified to AD cmdlets
+        [Alias('ObjectGuid')]
+        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $Identity,
+        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $LicenseGroup,
+        # Credentials passed on to AD cmdlets.
+        [pscredential]
+        [System.Management.Automation.Credential()]
+        $Credential
+    )
+
+    $params = @{
+        Identity = $Identity
+    }
+
+    if ($null -ne $Credential)
+    {
+        $params.Credential = $Credential
+    }
+ 
+    $userInfo = Get-UserInfo @params
+    $licenseGroupInfo = $null
+    if ($null -ne $LicenseGroup)
+    {
+        $licenseGroupInfo = Get-LicenseGroup -Guid $LicenseGroup
+    }
+    
+    $currentLicensingStatusMap = [System.Collections.Generic.Dictionary[hashtable, object]]::new([HashtableComparer]::new())
+    $currentLicensingStatusMap.Add(@{Licensed = $true;  Stashed = $false; MailEnabled = $true},  'ActiveMailEnabled')
+    $currentLicensingStatusMap.Add(@{Licensed = $true;  Stashed = $false; MailEnabled = $false}, 'ActiveMailDisabled')
+    $currentLicensingStatusMap.Add(@{Licensed = $false; Stashed = $true;  MailEnabled = $true},  'StashedMailEnabled')
+    $currentLicensingStatusMap.Add(@{Licensed = $false; Stashed = $true;  MailEnabled = $false}, 'StashedMailDisabled')
+    $currentLicensingStatusMap.Add(@{Licensed = $false; Stashed = $false; MailEnabled = $false}, 'Unlicensed')
+
+    $newLicenseingStatusMap = [System.Collections.Generic.Dictionary[hashtable, object]]::new([HashtableComparer]::new())
+    $newLicenseingStatusMap.Add(@{Licensed = $true;  MailEnabled = $true},  'MailEnabled')
+    $newLicenseingStatusMap.Add(@{Licensed = $true;  MailEnabled = $false}, 'MailDisabled')
+    $newLicenseingStatusMap.Add(@{Licensed = $false; MailEnabled = $null},  'Unlicensed')
+
+    $currentLicensingStatus = $currentLicensingStatusMap[@{
+        Licensed = $userInfo.Licensed
+        Stashed = $userInfo.Stashed
+        MailEnabled = $userInfo.MailEnabled
+    }]
+    
+    $newLicenseingStatus = $newLicenseingStatusMap[@{
+        Licensed = $null -ne $LicenseGroupInfo
+        MailEnabled = $LicenseGroupInfo.MailEnabled
+    }]
+
+    if ($null -eq $currentLicensingStatus -or $null -eq $newLicenseingStatus)
+    {
+        Write-Error -Message "Current or new licensing status is invalid. Current: $currentLicensingStatus, New: $newLicenseingStatus" -TargetObject $Identity
+        return
+    }
+
+    $tasks = New-Object 'Kungsbacka.AccountTasks.MicrosoftOnlineAutomaticLicenseChangeTask' -ArgumentList @(
+        $(if ($userInfo.AccountType -eq 'Elev') {'Student'} else {'Employee'})
+        @($LicenseGroup)
+        $currentLicensingStatus
+        $newLicenseingStatus
+    )
+
+    $params = @{
+        Identity = $Identity
+        Replace = @{carLicense = "[$($tasks.ToJson())]"}
+    }
+
+    if ($null -ne $Credential)
+    {
+        $params.Credential = $Credential
+    }
+
+    Set-ADUser @params
 }

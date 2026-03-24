@@ -61,11 +61,11 @@ function Get-PendingTask
 {
     param
     (
-        [Parameter(Position = 0)]
-        [ValidateSet('Expire','Unexpire','Delete','Create','Update','Move','RemoveLicense','RestoreLicense','All')]
-        [string]
-        $TaskName = 'All',
-        [Parameter(Position = 1)]
+        [Parameter(Mandatory=$false)]
+        [ValidateSet('Expire','Unexpire','Update','Create','Delete','Move','RemoveLicense','RestoreLicense','ChangeLicense')]
+        [string[]]
+        $TaskName,
+        [Parameter(Mandatory=$false)]
         [ValidateSet('Current','Stored')]
         [string]
         $TaskSource = 'Current'
@@ -77,6 +77,9 @@ function Get-PendingTask
     }
     else
     {
+        if (-not $TaskName) {
+            $TaskName = @('Expire','Unexpire','Update','Create','Delete','Move','RemoveLicense','RestoreLicense','ChangeLicense')
+        }
         InternalGetStoredTask -TaskName $TaskName
     }
 }
@@ -195,7 +198,7 @@ function Get-AccountConfiguration
     )
 
     $query = "SELECT [$($columns -join '],[')] FROM dbo.LmAccountConfiguration WHERE [accountType] = @accountType"
- 
+
     try {
         $cmd = Get-SqlCommand -Database MetaDirectory -Type Text -Text $query
         [void]$cmd.Parameters.AddWithValue('@accountType', $AccountType.ToString())
@@ -279,20 +282,20 @@ function InternalGetCurrentTask
 {
     param
     (
-        [string]$TaskName
+        [string[]]$TaskName
     )
-    $query = 'SELECT * FROM dbo.ufLmGetPendingLifecycleTask(@task, 1)' # 1 = Do not include renames
+    $query = 'SELECT * FROM dbo.ufLmGetPendingLifecycleTask(@task, 1) ORDER BY taskPriority ASC' # 1 = Do not include name changes
     try {
         $cmd = Get-SqlCommand -Database MetaDirectory -Type Text -Text $query
-        $cmd.CommandTimeout = 120
-        if ($TaskName -eq 'All')
+        $taskTable = New-Object 'System.Data.DataTable'
+        [void]$taskTable.Columns.Add('value', [string])
+        foreach ($name in $TaskName)
         {
-            [void]$cmd.Parameters.AddWithValue('@task', [DBNull]::Value)
+            [void]$taskTable.Rows.Add($name)
         }
-        else
-        {
-            [void]$cmd.Parameters.AddWithValue('@task', $TaskName)
-        }
+        $param = $cmd.Parameters.Add('@task', [System.Data.SqlDbType]::Structured)
+        $param.TypeName = 'dbo.NvarcharTable'
+        $param.Value = $taskTable
         $reader = $cmd.ExecuteReader()
         $table = New-Object 'System.Data.DataTable'
         if ($reader.HasRows)
@@ -315,18 +318,20 @@ function InternalGetStoredTask
 {
     param
     (
-        [string]$TaskName
+        [string[]]$TaskName
     )
-    $query =
-        'SELECT [task],[objectGUID],[path],[employeeNumber],[employeeType],[msDScloudExtensionAttribute9],[msDScloudExtensionAttribute10],[departmentNumber],[department],[givenName],[initials],[manager],[physicalDeliveryOfficeName],[sn],[telephoneNumber],[title],[localityName],[accountType] ' +
-        'FROM dbo.LmPendingTaskView'
-    if ($TaskName -ne 'All')
-    {
-        $query += " WHERE [task] = '$TaskName'"
-    }
-    $query += ' ORDER BY [sortOrder] ASC'
+    $query = 'SELECT a.* FROM dbo.LmPendingTaskView a INNER JOIN @task b ON a.task = b.value ORDER BY taskPriority ASC'
     try {
         $cmd = Get-SqlCommand -Database MetaDirectory -Type Text -Text $query
+        $taskTable = New-Object 'System.Data.DataTable'
+        [void]$taskTable.Columns.Add('value', [string])        
+        foreach ($name in $TaskName)
+        {
+            [void]$taskTable.Rows.Add($name)
+        }
+        $param = $cmd.Parameters.Add('@task', [System.Data.SqlDbType]::Structured)
+        $param.TypeName = 'dbo.NvarcharTable'
+        $param.Value = $taskTable
         $reader = $cmd.ExecuteReader()
         $table = New-Object 'System.Data.DataTable'
         if ($reader.HasRows)

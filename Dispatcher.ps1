@@ -9,7 +9,7 @@ $ErrorActionPreference = 'Stop'
 
 $taskLimits = Get-Limits
 $includedAccountTypes = Get-IncludedAccountTypes
-$tasks = Get-PendingTask -TaskName All | Where-Object accountType -in @($includedAccountTypes)
+$tasks = Get-PendingTask | Where-Object accountType -in @($includedAccountTypes)
 $taskGroups = $tasks | Group-Object -Property task -NoElement
 if ($taskLimits.DisableLimits) {
     Enable-Limits
@@ -59,6 +59,10 @@ foreach ($task in $tasks)
             RestoreLicense
             {
                 $task | Restore-MsolLicense
+            }
+            ChangeLicense
+            {
+                $task | Change-MsolLicense
             }
             Delete
             {
