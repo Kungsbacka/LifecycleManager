@@ -204,8 +204,9 @@ function Get-UserInfo
             break
         }
     }
+    
     $isLicensed = $null -ne $licenseGroup
-
+    $haveStashedLicense = $false
     if ($null -eq $licenseGroup -and $user.'msDS-cloudExtensionAttribute1')
     {
         $haveStashedLicense = $true
