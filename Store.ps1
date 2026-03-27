@@ -94,7 +94,7 @@ function Get-Limits
         $limits = InternalGetLimitsFromDatabase
         $source = 'database'
     }
-    $mandatory = @('DisableLimits', 'Create', 'Expire', 'Unexpire', 'RemoveLicense', 'RestoreLicense', 'Delete', 'Update', 'Move')
+    $mandatory = @('DisableLimits', 'Create', 'Expire', 'Unexpire', 'RemoveLicense', 'RestoreLicense', 'Delete', 'Update', 'Move', 'ChangeLicense')
     foreach ($name in $mandatory) {
         if ($null -eq $limits[$name] -or ($limits[$name] -is [int] -and $limits[$name] -eq 0)) {
             throw "Configuration for limits is not complete in $source. Missing or misconfigured entry: $name"
