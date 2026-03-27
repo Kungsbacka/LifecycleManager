@@ -1,4 +1,5 @@
 .vscode
 Config.ps1
 depend.ps1
+deploy.ps1
 lib/
