@@ -787,6 +787,7 @@ function Restore-MsolLicense
 
 function Change-MsolLicense
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseApprovedVerbs", "")]
     param
     (
         # Identity is passed unmodified to AD cmdlets
