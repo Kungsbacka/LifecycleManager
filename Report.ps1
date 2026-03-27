@@ -24,6 +24,10 @@ function Send-NewAccountReport
     
     $reportPath = Join-Path -Path $env:TEMP -ChildPath 'elevkonton.xlsx'
     $query = 'SELECT * FROM dbo.LmNewAccountView'
+    
+    # Note: this should be in a try/finally block to dispose $cmd and $reader properly
+    # on early exit. Since we only run this once each time the script is run as a
+    # Scheduled Task, this is not an issue in practice. But we may fix this later.
     $cmd = Get-SqlCommand -Database MetaDirectory -Type Text -CommandText $query
     $reader = $cmd.ExecuteReader()
     $table = New-Object 'System.Data.DataTable'
