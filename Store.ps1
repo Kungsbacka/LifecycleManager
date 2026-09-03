@@ -71,17 +71,11 @@ function Get-PendingTask
         $TaskSource = 'Current'
     )
 
-    if ($TaskSource -eq 'Current')
-    {
-        InternalGetCurrentTask -TaskName $TaskName
+    if ($TaskSource -eq 'Stored' -and -not $TaskName) {
+        $TaskName = @('Expire','Unexpire','Update','Create','Delete','Move','RemoveLicense','RestoreLicense','ChangeLicense')
     }
-    else
-    {
-        if (-not $TaskName) {
-            $TaskName = @('Expire','Unexpire','Update','Create','Delete','Move','RemoveLicense','RestoreLicense','ChangeLicense')
-        }
-        InternalGetStoredTask -TaskName $TaskName
-    }
+
+    InternalGetTask -TaskSource $TaskSource -TaskName $TaskName
 }
 
 function Get-Limits
@@ -278,14 +272,23 @@ function InternalGetLimitsFromDatabase
     Write-Output $limits
 }
 
-function InternalGetCurrentTask
+function InternalGetTask
 {
     param
     (
+        [ValidateSet('Current','Stored')]
+        [string]$TaskSource,
         [string[]]$TaskName
     )
-    $query = 'SELECT * FROM dbo.ufLmGetPendingLifecycleTask(@task, 1) ORDER BY taskPriority ASC' # 1 = Do not include name changes
+
     try {
+        if ($TaskSource -eq 'Stored') {
+            $query = 'SELECT a.* FROM dbo.LmPendingTaskView a INNER JOIN @task b ON a.task = b.value ORDER BY taskPriority ASC'
+        }
+        else {
+            $query = 'SELECT * FROM dbo.ufLmGetPendingLifecycleTask(@task, 1) ORDER BY taskPriority ASC' # 1 = Do not include name changes
+        }
+
         $cmd = Get-SqlCommand -Database MetaDirectory -Type Text -Text $query
         $taskTable = New-Object 'System.Data.DataTable'
         [void]$taskTable.Columns.Add('value', [string])
@@ -293,42 +296,7 @@ function InternalGetCurrentTask
         {
             [void]$taskTable.Rows.Add($name)
         }
-        $param = $cmd.Parameters.Add('@task', [System.Data.SqlDbType]::Structured)
-        $param.TypeName = 'dbo.NvarcharTable'
-        $param.Value = $taskTable
-        $reader = $cmd.ExecuteReader()
-        $table = New-Object 'System.Data.DataTable'
-        if ($reader.HasRows)
-        {
-            $table.Load($reader)
-        }
-        Write-Output $table.Rows
-    }
-    finally {
-        if ($cmd) {
-            $cmd.Dispose()
-        }
-        if ($reader) {
-            $reader.Dispose()
-        }
-    }
-}
 
-function InternalGetStoredTask
-{
-    param
-    (
-        [string[]]$TaskName
-    )
-    $query = 'SELECT a.* FROM dbo.LmPendingTaskView a INNER JOIN @task b ON a.task = b.value ORDER BY taskPriority ASC'
-    try {
-        $cmd = Get-SqlCommand -Database MetaDirectory -Type Text -Text $query
-        $taskTable = New-Object 'System.Data.DataTable'
-        [void]$taskTable.Columns.Add('value', [string])        
-        foreach ($name in $TaskName)
-        {
-            [void]$taskTable.Rows.Add($name)
-        }
         $param = $cmd.Parameters.Add('@task', [System.Data.SqlDbType]::Structured)
         $param.TypeName = 'dbo.NvarcharTable'
         $param.Value = $taskTable
@@ -338,6 +306,7 @@ function InternalGetStoredTask
         {
             $table.Load($reader)
         }
+
         Write-Output $table.Rows
     }
     finally {
