@@ -137,9 +137,7 @@ function Create-Account
         [string]
         $DepartmentNumber,
         # Mobile phone
-        # employeeType attribute is used instead of mobilePhone
-        # because employeeType can be flagged confidential.
-        [Alias('EmployeeType')]
+        [Alias('Mobile')]
         [Parameter(ValueFromPipelineByPropertyName=$true)]
         [string]
         $MobilePhone,
@@ -241,10 +239,6 @@ function Create-Account
                 {
                     $params.OtherAttributes.Add('msDS-cloudExtensionAttribute10', $value)
                 }
-                elseif ($key -eq 'MobilePhone')
-                {
-                    $params.OtherAttributes.Add('employeeType', $value)
-                }
                 elseif ($key -eq 'TelephoneNumber')
                 {
                     $params.OtherAttributes.Add('telephoneNumber', $value)
@@ -339,10 +333,8 @@ function Update-Account
         [Parameter(ValueFromPipelineByPropertyName=$true)]
         [AllowNull()]
         $TelephoneNumber,
-        # Updates employeeType attribute. For privacy reasons this attribute contains the mobile
-        # phone number. This is one of a few attributes that can be flaged as confidential in
-        # Active Directory.
-        [Alias('EmployeeType')]
+        # Updates mobile attribute
+        [Alias('Mobile')]
         [Parameter(ValueFromPipelineByPropertyName=$true)]
         [AllowNull()]
         $MobilePhone,
@@ -411,7 +403,7 @@ function Update-Account
             }
             elseif ($name -eq 'MobilePhone')
             {
-                $name = 'employeeType'
+                $name = 'mobile'
             }
             elseif ($name -eq 'Skolenhetskod')
             {
