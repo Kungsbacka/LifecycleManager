@@ -94,9 +94,8 @@ try
 {
     if ($Script:Config.AllAccountsRecipient)
     {
-        Send-NewAccountReport -Recipient $Script:Config.AllAccountsRecipient -DoNotMarkReported
+        Send-NewAccountReport -Recipient $Script:Config.AllAccountsRecipient
     }
-    Send-NewAccountReport
 }
 catch
 {
